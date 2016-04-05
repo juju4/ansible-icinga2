@@ -1,0 +1,11 @@
+[global]
+show_stacktraces = "1"
+config_backend = "db"
+config_resource = "icingaweb_db"
+#config_resource = "{{ icinga2_mysqlwebdb }}-dbweb"
+
+[logging]
+log = "syslog"
+level = "ERROR"
+application = "icingaweb2"
+

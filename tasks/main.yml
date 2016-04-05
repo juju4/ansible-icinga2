@@ -1,0 +1,13 @@
+---
+
+## to avoid dns issue (used in both client and server mode)
+- shell: "ifconfig {{ icinga2_if }} | awk -F'[ :]' '/inet addr/ {print $13}'"
+  changed_when: False
+  register: ipaddr
+
+- include: server.yml
+  when: icinga2mode == 'server'
+
+- include: client.yml
+  when: icinga2mode == 'client'
+

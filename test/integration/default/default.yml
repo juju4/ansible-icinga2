@@ -1,0 +1,8 @@
+---
+
+- hosts: all
+  vars:
+    - rabbitmq_conf_ssl_listeners_address: 0.0.0.0
+  roles:
+    - { role: icinga2, chart_module: pnp4nagios }
+

@@ -1,0 +1,40 @@
+#!/bin/sh
+## backup script for icinga2 & web
+
+export PATH=/usr/sbin:/usr/bin:/sbin:/bin
+umask 022
+
+dest={{ backupdir }}
+
+dirs="/etc/icinga2 /etc/icingaweb2 \
+    /etc/apache2 \
+    /var/lib/icinga2 \
+    /var/log/icinga2 \
+    /usr/local/nagvis/etc \
+    "
+
+{% if  icinga2_chart_module is defined and icinga2_chart_module == 'pnp4nagios' %}
+dirs="$dirs /etc/pnp4nagios /var/lib/pnp4nagios"
+{% else %}
+#dirs="$dirs /etc/pnp4nagios /var/lib/pnp4nagios"
+{% endif %}
+
+{% if icinga2_chart_module is defined and icinga2_chart_module == 'graphite' %}
+dirs="$dirs /etc/graphite /var/lib/graphite"
+
+{% if icinga2_graphite_backend is defined and icinga2_graphite_backend == 'postgresql' %}
+sudo -u postgres pg_dumpall > $dest/pgdumpall.sql
+{% endif %}
+
+{% else %}
+#dirs="$dirs /etc/graphite /var/lib/graphite"
+#sudo -u postgres pg_dumpall | gzip > $dest/pgdumpall.gz
+{% endif %}
+
+## icingaweb2 backend
+mysqldump --opt --all-databases > $dest/mysqldumpall.sql
+
+tar czf $dest/backup-icinga2.tar.gz $dirs $dest/pgdumpall.sql $dest/mysqldumpall.sql
+rm $dest/pgdumpall.sql $dest/mysqldumpall.sql
+tar tzf $dest/backup-icinga2.tar.gz > /dev/null
+

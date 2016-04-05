@@ -1,0 +1,145 @@
+---
+## https://tipstricks.itmatrix.eu/installing-icinga2-in-debian-wheezy/
+## https://github.com/findmypast/icingaweb2-module-graphite
+## https://www.digitalocean.com/community/tutorials/how-to-install-and-use-graphite-on-an-ubuntu-14-04-server
+
+- name: Debian | Extra packages install
+  apt: name={{item}} state=present
+  with_items:
+    - graphite-carbon
+## web interface
+    - graphite-web
+### or through pip
+#    - python2.7
+#    - python-pip
+    - python-cairo
+    - python-django
+    - python-django-tagging
+    - libapache2-mod-wsgi
+    - python-twisted
+    - python-memcache
+    - python-pysqlite2
+    - python-simplejson
+    - build-essential
+    - python-dev
+
+- name: Debian | Extra packages install for postgresql backend
+  apt: name={{item}} state=present
+  with_items:
+    - postgresql
+    - libpq-dev
+    - python-psycopg2
+  when: graphite_backend is defined and graphite_backend == 'postgresql'
+
+## if not taking debian package
+#- pip: name=graphite-web
+
+- shell: icinga2 feature list | grep Enabled
+  register: featurelist
+  changed_when: False
+- name: Enable icinga2 graphite plugin
+  command: icinga2 feature enable graphite
+  notify:
+    - restart icinga2
+  when: featurelist.stdout.find("graphite") == -1
+
+- lineinfile: dest=/etc/default/graphite-carbon regexp='^CARBON_CACHE_ENABLED=' line='CARBON_CACHE_ENABLED=true'
+  notify:
+    - restart carbon-cache
+
+- name: restrict carbon daemon to localhost
+  replace: dest=/etc/carbon/carbon.conf regexp="{{ item.re }}" replace="{{ item.rep }}"
+  with_items:
+    - { re: '^LINE_RECEIVER_INTERFACE = 0.0.0.0', rep: 'LINE_RECEIVER_INTERFACE = 127.0.0.1' }
+    - { re: '^PICKLE_RECEIVER_INTERFACE = 0.0.0.0', rep: 'PICKLE_RECEIVER_INTERFACE = 127.0.0.1' }
+    - { re: '^CACHE_QUERY_INTERFACE = 0.0.0.0', rep: 'CACHE_QUERY_INTERFACE = 127.0.0.1' }
+  notify:
+    - restart carbon-cache
+  when: graphite_carbon_localhostonly is defined and graphite_carbon_localhostonly
+
+- postgresql_db: name=graphite
+  become: yes
+  become_user: postgres
+  when: graphite_backend is defined and graphite_backend == 'postgresql'
+## FIXME! psycopg2.ProgrammingError: relation "graphite" does not exist
+#- postgresql_user: db=graphite name=graphite password=graphite_password_to_change priv=ALL/graphite:ALL
+#  become: yes
+#  become_user: postgres
+#  when: graphite_backend is defined and graphite_backend == 'postgresql'
+
+- shell: "openssl rand -base64 32 | sed 's@[=\\/\\+]@@g;'"
+  changed_when: False
+  register: graphitesalt
+- lineinfile: dest=/etc/graphite/local_settings.py regexp="{{ item.regexp }}" line="{{ item.line }}" backup=yes
+  with_items:
+    - { regexp: "^#SECRET_KEY = ", line: "SECRET_KEY = \'{{ graphitesalt.stdout }}\'" }
+    - { regexp: '^TIME_ZONE = ', line: "TIME_ZONE = '{{ tz }}'" }
+    - { regexp: '^USE_REMOTE_USER_AUTHENTICATION = ', line: 'USE_REMOTE_USER_AUTHENTICATION = True' }
+
+- replace: dest=/etc/graphite/local_settings.py regexp="{{ item.regexp }}" replace="{{ item.replace }}"
+  with_items:
+#    - { regexp: "^#SECRET_KEY = \'UNSAFE_DEFAULT\'", line: "SECRET_KEY = \'{{ graphitesalt.stdout }}\'" }
+    - { regexp: "'NAME': '/var/lib/graphite/graphite.db'", replace: "'NAME': 'graphite'" }
+    - { regexp: "'ENGINE': 'django.db.backends.sqlite3'", replace: "'ENGINE': 'django.db.backends.postgresql_psycopg2'" }
+#    - { regexp: "'USER': ''", replace: "'USER': 'graphite'" }
+    - { regexp: "'PASSWORD': ''", replace: "'PASSWORD': 'graphite_password_to_change'" }
+    - { regexp: "'HOST': ''", replace: "'HOST': '127.0.0.1'" }
+#    - { regexp: "", replace: "" }
+  when: graphite_backend is defined and graphite_backend == 'postgresql'
+
+- stat: path=/etc/apache2/sites-available/apache2-graphite.conf
+  register: apache2graphite
+- command: "rsync -ci /usr/share/graphite-web/apache2-graphite.conf /etc/apache2/sites-available/"
+  register: rsync_result
+  changed_when: 'rsync_result.stdout != ""'
+  when: not apache2graphite.stat.exists
+## separate instance to avoid conflict w icingaweb2
+- replace: dest=/etc/apache2/sites-available/apache2-graphite.conf regexp='<VirtualHost \*\:80>' replace='<VirtualHost *:8888>' backup=yes
+  notify:
+    - restart apache
+- lineinfile: dest=/etc/apache2/sites-available/apache2-graphite.conf regexp="{{ item.regexp }}" line="{{ item.line }}"
+  with_items:
+    - { regexp: '^Listen ', line: 'Listen 8888' }
+#    - { regexp: '^NameVirtualHost ', line: 'NameVirtualHost *:8888' }
+  notify:
+    - restart apache
+- file: src=/etc/apache2/sites-available/apache2-graphite.conf dest=/etc/apache2/sites-enabled/apache2-graphite.conf state=link
+  notify:
+    - restart apache
+
+- file: dest=/etc/icingaweb2/modules/graphite state=directory mode=0755
+
+- stat: path=/usr/share/icingaweb2/modules/graphite
+  register: icingaweb2graphitedir
+- name: Add graphite integration to icingaweb2
+  git:
+    repo=https://github.com/findmypast/icingaweb2-module-graphite.git
+    dest=/usr/share/icingaweb2/modules/graphite
+  when: not icingaweb2graphitedir.stat.exists
+
+## virtualhost is 8888 but accessing through vagrant forward on 1588
+- template: src=config.ini dest=/etc/icingaweb2/modules/graphite/config.ini mode=0644
+- replace: dest={{ item }} regexp='http://graphite.com' replace='{{ icinga2_graphite_base_url }}'
+  with_items:
+    - /usr/share/icingaweb2/modules/graphite/application/views/scripts/config/index.phtml
+    - /usr/share/icingaweb2/modules/graphite/library/Graphite/Grapher.php
+- replace: dest={{ item }} regexp="protected \$legacyMode = 'false';" replace="protected $legacyMode = 'true';"
+  with_items:
+    - /usr/share/icingaweb2/modules/graphite/library/Graphite/Grapher.php
+
+- command: graphite-manage syncdb --noinput
+## FIXME! django.db.utils.IntegrityError: UNIQUE constraint failed: auth_user.username
+#- command: graphite-manage createsuperuser --username=adming --noinput --email vagrant@localhost
+## Note: wsgi is run by apache2 process under _graphite
+#- file: dest=/var/lib/graphite/graphite.db mode=0644 owner=www-data group=_graphite
+- file: dest=/var/lib/graphite/graphite.db mode=0644 owner=_graphite group=_graphite
+  when: graphite_backend is defined and graphite_backend == 'sqlite'
+
+## https://github.com/graphite-project/graphite-web/issues/789
+- file: src=/usr/share/javascript/jquery-flot/jquery.flot.time.js dest=/usr/share/graphite-web/static/js/jquery.flot.time.js state=link
+- lineinfile: dest=/usr/lib/python2.7/dist-packages/graphite/templates/graphlot.html line='    <script type="text/javascript" src="../content/js/jquery.flot.time.js"></script>' insertafter='<script type="text/javascript" src="../content/js/jquery.flot.crosshair.js"></script>'
+
+- service: name=carbon-cache enabled=yes
+  notify:
+    - restart carbon-cache
+

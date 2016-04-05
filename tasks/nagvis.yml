@@ -1,0 +1,136 @@
+---
+## http://docs.nagvis.org/1.8/en_US/index.html
+## https://wiki.icinga.org/display/howtos/NagVis
+## https://github.com/divetoh/icingaweb2-module-nagvis
+
+- name: apt | nagvis dependencies install
+  apt: name={{item}} state=present
+  with_items:
+    - sqlite3
+    - graphviz
+    - libgraphviz-perl
+    - php5-gd
+    - php5-sqlite
+#    - php5-gettext
+#    - php5-mbstring
+#    - php5-session
+#    - php5-pdo
+#    - php5-pdo-sqlite
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- stat: path=/root/nagvis-{{ icinga2_nagvis_v }}.tar.gz
+  register: narchive
+- name: download nagvis
+  get_url: url=http://www.nagvis.org/share/nagvis-{{ icinga2_nagvis_v }}.tar.gz dest=/root/nagvis-{{ icinga2_nagvis_v }}.tar.gz mode=0644
+  when: not narchive.stat.exists
+
+- stat: path=/usr/local/nagvis-{{ icinga2_nagvis_v }}/install.sh
+  register: earchive
+- unarchive: src=/root/nagvis-{{ icinga2_nagvis_v }}.tar.gz dest=/usr/local copy=no
+  when: not earchive.stat.exists
+
+- name: symlink /usr/local/nagvis to nagvis-version
+  file: src=/usr/local/nagvis-{{ icinga2_nagvis_v }} dest=/usr/local/nagvis state=link
+
+- name: Create nagvis config dir in /etc
+  file: dest=/etc/nagvis state=directory mode=0755
+
+## manage permission from apache conf
+- name: remove nagvis .htaccess
+  file: dest=/usr/local/nagvis/etc/.htaccess state=absent
+
+- name: symlink nagvis config /etc to /usr/local directory
+  file: src=/etc/nagvis/nagvis.ini.php dest=/usr/local/nagvis/etc/nagvis.ini.php state=link
+
+## review http://docs.nagvis.org/1.8/en_US/index.html
+- name: set up nagvis configuration
+  template: src=nagvis.ini.php.j2 dest=/etc/nagvis/nagvis.ini.php mode=0644 backup=yes
+
+- stat: path=/etc/apache2/conf-available/apache2-nagvis.conf
+  register: nagvisapache
+- command: "rsync -ci /usr/local/nagvis/etc/apache2-nagvis.conf-sample {{ apache_confdir }}/apache2-nagvis.conf"
+  register: rsync_result
+  changed_when: 'rsync_result.stdout != ""'
+  when: not nagvisapache.stat.exists
+- file: dest="{{ apache_confdir }}/apache2-nagvis.conf" mode=0644
+- file: src="{{ apache_confdir }}/apache2-nagvis.conf" dest=/etc/apache2/conf-enabled/apache2-nagvis.conf state=link
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+- replace: dest="{{ apache_confdir }}/apache2-nagvis.conf" regexp="{{ item.regexp }}" replace="{{ item.replace }}"
+  with_items:
+    - { regexp: '@NAGVIS_WEB@', replace: '/nagvis' }
+    - { regexp: '@NAGVIS_PATH@', replace: '/usr/local/nagvis/share' }
+    - { regexp: '^  Order allow,deny', replace: '#  Order allow,deny' }
+    - { regexp: '^  Allow from all', replace: '#  Allow from all' }
+  notify:
+    - restart apache
+- lineinfile: dest="{{ apache_confdir }}/apache2-nagvis.conf" line='  Require all granted' insertafter='^#  Allow from all'
+
+- stat: path=/usr/local/nagvis/docs
+  register: docsdir
+- file: src=/usr/local/nagvis/docs dest=/usr/local/nagvis/share/docs state=link
+  when: docsdir.stat.exists
+- name: validating www owner of nagvis tree
+#  command: chown -R {{ www_user }} /usr/local/nagvis
+  file: dest="/usr/local/nagvis-{{ icinga2_nagvis_v }}" state=directory recurse=yes owner={{ www_user }}
+## https://github.com/ansible/ansible-modules-core/issues/468
+- file: path=/etc/nagvis/nagvis.ini.php mode=0664 state=file
+- file: dest=/usr/local/nagvis/etc mode=0775 state=directory owner={{ www_user }}
+- file: dest=/usr/local/nagvis/etc/maps mode=0775
+- file: dest={{ item }} mode=0664
+  with_fileglob:
+    - /usr/local/nagvis/etc/maps/*
+- file: dest=/usr/local/nagvis/etc/geomap mode=0775
+- file: dest={{ item }} mode=0664
+  with_fileglob:
+    - /usr/local/nagvis/etc/geomap/*
+- file: dest=/usr/local/nagvis/share/userfiles/images/maps mode=0775
+- file: dest={{ item }} mode=0664
+  with_fileglob:
+    - /usr/local/nagvis/share/userfiles/images/maps/*
+- file: dest=/usr/local/nagvis/var mode=0775 state=directory owner={{ www_user }}
+- file: dest={{ item }} mode=0664 owner={{ www_user }}
+  with_fileglob:
+    - /usr/local/nagvis/var/*
+- file: dest=/usr/local/nagvis/var/tmpl/cache mode=0775 state=directory owner={{ www_user }}
+- file: dest={{ item }} mode=0664 owner={{ www_user }}
+  with_fileglob:
+    - /usr/local/nagvis/var/tmpl/cache/*
+- file: dest=/usr/local/nagvis/var/tmpl/compile mode=0775 state=directory owner={{ www_user }}
+- file: dest=/usr/local/nagvis/etc/maps mode=0775 state=directory owner={{ www_user }}
+- file: dest=/usr/local/nagvis/etc/profiles mode=0775 state=directory owner={{ www_user }}
+- file: dest=/usr/local/nagvis/share/userfiles/images/maps mode=0775 state=directory owner={{ www_user }}
+
+- stat: path=/usr/share/icingaweb2/modules/nagvis
+  register: icingaweb2nagvisdir
+- name: Add nagvis integration to icinga2
+  git:
+    repo=https://github.com/divetoh/icingaweb2-module-nagvis.git
+    dest=/usr/share/icingaweb2/modules/nagvis
+  when: not icingaweb2nagvisdir.stat.exists
+
+- name: add an automap with localhost as root
+  template: src=nagvis-automap.cfg dest=/usr/local/nagvis/etc/maps/nagvis-automap.cfg mode=0644
+
+- name: disable demo maps
+#  command: "mv {{ item }} {{ item }}.disabled removes={{ item }} creates={{ item }}.disabled"
+  command: "mv {{ item }} {{ item }}.disabled removes={{ item }}"
+#  with_fileglob:
+#    - /usr/local/nagvis/etc/maps/demo-*
+  with_items:
+    - /usr/local/nagvis/etc/maps/demo-automap2.cfg
+    - /usr/local/nagvis/etc/maps/demo-geomap.cfg
+    - /usr/local/nagvis/etc/maps/demo-ham-racks.cfg
+    - /usr/local/nagvis/etc/maps/demo-muc-srv1.cfg
+    - /usr/local/nagvis/etc/maps/demo-automap.cfg
+    - /usr/local/nagvis/etc/maps/demo-germany.cfg
+    - /usr/local/nagvis/etc/maps/demo-load.cfg
+    - /usr/local/nagvis/etc/maps/demo-overview.cfg
+  when: icinga2_nagvis_removedemo is defined and icinga2_nagvis_removedemo
+
+- name: Create nagvis modules directory for icingaweb2
+  file: dest=/etc/icingaweb2/modules/nagvis state=directory mode=0755
+- name: set icingaweb2 nagvis config
+  template: "src={{ item.s }} dest={{ item.d }} mode=0660 owner={{ www_user }} group={{ www_user }} backup=yes"
+  with_items:
+    - { s: 'icingaweb2-nagvis.ini.j2', d: '/etc/icingaweb2/modules/nagvis/config.ini' }
+

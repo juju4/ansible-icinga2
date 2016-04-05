@@ -1,0 +1,5 @@
+---
+
+- set_fact:
+    np: /usr/lib64/nagios/plugins
+

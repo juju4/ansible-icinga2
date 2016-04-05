@@ -1,0 +1,41 @@
+---
+
+- name: ensure .vim directories exist - non-root user
+  file: dest={{ item }} state=directory mode=0700
+  with_items:
+    - /home/{{ icinga2_user }}/.vim/syntax
+    - /home/{{ icinga2_user }}/.vim/ftdetect
+  when: icinga2_user != 'root' and icinga2_user != '_icinga2'
+
+- name: replicate icinga2 vim syntax file (1) - non-root
+  command: "rsync -ci {{ icinga2_vimsyntax }}/vim/syntax/icinga2.vim /home/{{ icinga2_user }}/.vim/syntax/"
+  register: rsync_result
+  changed_when: 'rsync_result.stdout != ""' 
+  when: icinga2_user != 'root' and icinga2_user != '_icinga2'
+
+- name: replicate icinga2 vim syntax file (2) - non-root
+  command: "rsync -ci {{ icinga2_vimsyntax }}/vim/ftdetect/icinga2.vim /home/{{ icinga2_user }}/.vim/ftdetect/"
+  register: rsync_result
+  changed_when: 'rsync_result.stdout != ""'
+  when: icinga2_user != 'root' and icinga2_user != '_icinga2'
+
+- name: ensure .vim directories exist - root user
+  file: dest={{ item }} state=directory mode=0700
+  with_items:
+    - /root/.vim/syntax
+    - /root/.vim/ftdetect
+  when: icinga2_user == 'root'
+
+## FIXME! disappear on 20160226 but on http://packages.ubuntu.com/wily/all/icinga2-common/filelist + jessie
+#- name: replicate icinga2 vim syntax file (1) - root
+#  command: "rsync -ci {{ icinga2_vimsyntax }}/vim/syntax/icinga2.vim /root/.vim/syntax/"
+#  register: rsync_result
+#  changed_when: 'rsync_result.stdout != ""' 
+#  when: icinga2_user == 'root'
+#
+#- name: replicate icinga2 vim syntax file (2) - root
+#  command: "rsync -ci {{ icinga2_vimsyntax }}/vim/ftdetect/icinga2.vim /root/.vim/ftdetect/"
+#  register: rsync_result
+#  changed_when: 'rsync_result.stdout != ""'
+#  when: icinga2_user == 'root'
+

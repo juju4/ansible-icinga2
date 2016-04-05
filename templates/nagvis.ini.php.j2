@@ -1,0 +1,44 @@
+; <?php return 1; ?>
+; nagvis config for icingaweb2
+
+[global]
+http_timeout={{ icinga2_nagvis_http_timeout }}
+{% if icinga2_nagvis_logonmodule is not defined or icinga2_nagvis_logonmodule == 'LogonMixed' %}
+logonmodule="LogonMixed"
+{% elif icinga2_nagvis_logonmodule is defined and icinga2_nagvis_logonmodule == 'LogonEnv' %}
+logonenvcreaterole="Guests"
+logonenvcreateuser="1"
+logonenvvar="REMOTE_USER"
+logonmodule="LogonEnv"
+{% elif icinga2_nagvis_logonmodule is defined and icinga2_nagvis_logonmodule == 'LogonDialog' %}
+logonmodule="LogonDialog"
+{% elif icinga2_nagvis_logonmodule is defined and icinga2_nagvis_logonmodule == 'LogonMultisite' %}
+logonmodule="LogonMultisite"
+{% endif %}
+
+; Default rotation time of pages in rotations
+;refreshtime=60
+
+;sesscookiedomain="auto-detect"
+;sesscookiepath="/nagvis"
+;sesscookieduration="86400"
+sesscookiehttponly=1
+sesscookiesecure=1
+
+;startmodule="Overview"
+;startaction="view"
+
+[paths]
+;base="/usr/local/nagvis/"
+;htmlbase="/nagvis"
+htmlcgi="/icingaweb2/monitoring"
+
+[defaults]
+hosturl="[htmlcgi]/host/show?host=[host_name]"
+hostgroupurl="[htmlcgi]/list/hosts?hostgroup_name=[hostgroup_name]"
+serviceurl="[htmlcgi]/service/show?host=[host_name]&service=[service_description]"
+
+[backend_live_1]
+backendtype="mklivestatus"
+socket="unix:/var/run/icinga2/cmd/livestatus"
+

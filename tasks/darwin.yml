@@ -1,0 +1,5 @@
+---
+
+- set_fact:
+    np: /opt/local/libexec/nagios
+

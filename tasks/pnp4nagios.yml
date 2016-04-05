@@ -1,0 +1,102 @@
+---
+
+- name: Debian | PNP4Nagios packages install
+  apt: name={{item}} state=present install_recommends=no
+  with_items:
+    - pnp4nagios-bin
+    - pnp4nagios-web
+# http://docs.pnp4nagios.org/pnp-0.6/rrdcached
+    - rrdcached
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+## no rrdcached on centos (only w collectd)
+- name: Redhat | PNP4Nagios packages
+  yum: name={{item}} state=present update_cache=yes
+  with_items:
+    - pnp4nagios
+  when: ansible_os_family == "RedHat" or ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+
+- file: src=/etc/pnp4nagios/apache.conf dest=/etc/apache2/conf-available/pnp4nagios.conf state=link
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+- file: src=../conf-available/pnp4nagios.conf dest={{ icinga2_apacheconf }}/pnp4nagios.conf state=link
+#  when: ansible_architecture == 'i386' or ansible_architecture == 'x86_64'
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- name: Enable npcd
+  replace: dest=/etc/default/npcd regexp='^RUN="no"' replace='RUN="yes"'
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+- name: Change Pnp4nagios spooldir to icinga2
+  replace: dest=/etc/pnp4nagios/npcd.cfg regexp='^perfdata_spool_dir = /var/spool/pnp4nagios/npcd/' replace='perfdata_spool_dir = /var/spool/icinga2/perfdata/'
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+  notify:
+    - restart npcd
+- name: Change Pnp4nagios htpass path
+## transform symlink in file?
+#  replace: dest={{ icinga2_apacheconf }}/pnp4nagios.conf regexp='/etc/nagios3/htpasswd.users' replace='/usr/share/icingaweb2/public/.htpass'
+  replace: dest=/etc/pnp4nagios/apache.conf regexp='/etc/nagios3/htpasswd.users' replace='/usr/share/icingaweb2/public/.htpass'
+  notify:
+    - restart apache
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- debug: var=pnp4nagios_webuser
+- debug: var=pnp4nagios_webpass
+- name: Disable htpasswd area
+  replace: "dest={{ pnp4nagios_apacheconf }} regexp='{{ item.regexp }}' replace='{{ item.replace }}' backup=yes"
+  with_items:
+    - { regexp: '\tAuthName \"Nagios Access\"', replace: "\t#AuthName NagiosAccess" }
+    - { regexp: "\tAuthType Basic", replace: "\t#AuthType Basic" }
+    - { regexp: "\tAuthUserFile /usr/share/icingaweb2/public/.htpass", replace: "\t#AuthUserFile /usr/share/icingaweb2/public/.htpass" }
+    - { regexp: "\tRequire valid-user", replace: "\t#Require valid-user" }
+  notify:
+    - restart apache
+  when: pnp4nagios_webuser is not defined or pnp4nagios_webpass is not defined
+
+- replace: dest=/etc/pnp4nagios/config.php regexp="{{ item.regexp }}" replace="{{ item.replace }}" backup=yes
+  with_items:
+    - { regexp: "/cgi-bin/nagios3", replace: "/cgi-bin/icinga" }
+    - { regexp: "['RRD_DAEMON_OPTS'] = '';", replace: "['RRD_DAEMON_OPTS'] = 'unix:/var/run/rrdcached.sock';" }
+- replace: dest=/etc/pnp4nagios/process_perfdata.cfg regexp="{{ item.regexp }}" replace="{{ item.replace }}" backup=yes
+  with_items:
+    - { regexp: '^RRD_DAEMON_OPTS = .*', replace: 'RRD_DAEMON_OPTS = unix:/var/run/rrdcached.sock' }
+    - { regexp: '^KEY = should_be_changed', replace: 'KEY = {{ 100 | random }}' }
+
+# ?
+- user: name=www-data groups=nagios append=yes
+
+# Note: can't validate pnp4nagios setup as verify script doesn't support icinga2
+# /usr/lib/pnp4nagios/libexec/verify_pnp_config_v2.pl --mode=bulk+npcd --config=/etc/icinga2/icinga2.conf --pnpcfg=/etc/pnp4nagios
+# echo STATS | sudo -u nagios socat - /var/run/rrdcached.sock
+
+- stat: path=/usr/share/icingaweb2/modules/pnp4nagios
+  register: icingaweb2pnp4nagiosdir
+## https://github.com/Icinga/icingaweb2-module-pnp4nagios deprecated/FIXME!
+## https://github.com/Icinga/icingaweb2-module-pnp
+- name: Add pnp4nagios integration to icinga2
+  git:
+    repo=https://github.com/Icinga/icingaweb2-module-pnp4nagios
+    dest=/usr/share/icingaweb2/modules/pnp4nagios
+  when: not icingaweb2pnp4nagiosdir.stat.exists
+
+- name: check_mem.php install
+  get_url: url=https://raw.githubusercontent.com/jasonhancock/nagios-memory/master/pnp4nagios/templates/check_mem.php
+           dest="{{ pnp4nagios_templatedir }}/check_mem.php"
+           mode=0444
+
+- file: dest=/var/cache/rrdcached mode=0755 owner=nagios state=directory
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+- lineinfile: dest=/etc/default/rrdcached regexp='^OPTS=' line='OPTS="-w 1800 -z 1800 -j /var/cache/rrdcached -s nagios -m 0660 -l unix:/var/run/rrdcached.sock"' backup=yes
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- name: Enable services for Pnp4nagios
+  service: name={{ item }} enabled=yes
+  with_items:
+    - npcd
+    - "{{ apache_svc }}"
+
+- name: Enable rrdcached for Pnp4nagios
+  service: name={{ item }} enabled=yes
+  with_items:
+    - rrdcached
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+
