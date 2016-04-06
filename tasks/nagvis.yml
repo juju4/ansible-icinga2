@@ -39,12 +39,12 @@
 - name: remove nagvis .htaccess
   file: dest=/usr/local/nagvis/etc/.htaccess state=absent
 
-- name: symlink nagvis config /etc to /usr/local directory
-  file: src=/etc/nagvis/nagvis.ini.php dest=/usr/local/nagvis/etc/nagvis.ini.php state=link
-
 ## review http://docs.nagvis.org/1.8/en_US/index.html
 - name: set up nagvis configuration
   template: src=nagvis.ini.php.j2 dest=/etc/nagvis/nagvis.ini.php mode=0644 backup=yes
+
+- name: symlink nagvis config /etc to /usr/local directory
+  file: src=/etc/nagvis/nagvis.ini.php dest=/usr/local/nagvis/etc/nagvis.ini.php state=link
 
 - stat: path=/etc/apache2/conf-available/apache2-nagvis.conf
   register: nagvisapache

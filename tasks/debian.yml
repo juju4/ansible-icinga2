@@ -2,4 +2,5 @@
 
 - set_fact:
     np: /usr/lib/nagios/plugins
+    mysql_svc: mysql-server
 

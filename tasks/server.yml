@@ -162,10 +162,15 @@
 - name: add restore script
   template: src=restore-icinga2.sh.j2 dest={{ scriptsdir }}/restore-icinga2.sh mode=0755
 
-- name: configure backup script 2/m with cron
+- name: configure backup script 2/m with cron - debian
   cron: name="icinga2 backup" minute=0 hour=23 weekday="2,16"
     user=root job="{{ scriptsdir }}/backup-icinga2.sh"
     cron_file=ansible_icinga2backup
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+- name: configure backup script 2/m with cron - redhat
+  cron: name="icinga2 backup" minute=0 hour=23 weekday="2,16"
+    user=root job="{{ scriptsdir }}/backup-icinga2.sh"
+  when: ansible_os_family == "RedHat" or ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
 
 ### restore existing backup ?
 ### failed: [158.69.212.202 -> 127.0.0.1] => {"failed": true, "parsed": false}
@@ -204,6 +209,7 @@
   with_items:
     - icinga2
     - "{{ apache_svc }}"
+    - "{{ mysql_svc }}"
 
 - include: plugins.yml
 
