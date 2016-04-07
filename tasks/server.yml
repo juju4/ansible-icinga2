@@ -163,12 +163,12 @@
   template: src=restore-icinga2.sh.j2 dest={{ scriptsdir }}/restore-icinga2.sh mode=0755
 
 - name: configure backup script 2/m with cron - debian
-  cron: name="icinga2 backup" minute=0 hour=23 weekday="2,16"
+  cron: name="icinga2 backup" minute=0 hour=23 day="2,16"
     user=root job="{{ scriptsdir }}/backup-icinga2.sh"
     cron_file=ansible_icinga2backup
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 - name: configure backup script 2/m with cron - redhat
-  cron: name="icinga2 backup" minute=0 hour=23 weekday="2,16"
+  cron: name="icinga2 backup" minute=0 hour=23 day="2,16"
     user=root job="{{ scriptsdir }}/backup-icinga2.sh"
   when: ansible_os_family == "RedHat" or ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
 
@@ -189,12 +189,13 @@
 #- file: dest=/root/.ansible_restore_icinga2backup state=touch
 #  when: localbackup.stat.exists and not restored.stat.exists
 
-- name: copy extra icinga2 config
-  copy: "src={{ item }} dest=/etc/icinga2/conf.d/ mode=0644"
-  with_items: "{{ icinga2_extra_conf_files }}"
+- block:
+    - name: copy extra icinga2 config
+      copy: "src={{ item }} dest=/etc/icinga2/conf.d/ mode=0644"
+      with_items: "{{ icinga2_extra_conf_files }}"
+      notify:
+        - restart icinga2
   when: icinga2_extra_conf_files is defined and icinga2_extra_conf_files != ""
-  notify:
-    - restart icinga2
 
 - debug: msg="End configuration by connecting on http://{{ ansible_fqdn}} and entering token {{ token }}"
   when: not tokenfile.stat.exists
@@ -223,7 +224,7 @@
   mysql_db: name="{{ icinga2_mysqlwebdb }}" state=import target=/usr/share/icingaweb2/etc/schema/mysql.schema.sql login_user=root login_password="{{ icinga2_mysqlrootpw }}"
   ignore_errors: true
 - name: set icingaweb2 config
-  template: "src={{ item.s }} dest={{ item.d }} mode=0660 owner={{ www_user }} group={{ www_user }} backup=yes"
+  template: "src={{ item.s }} dest={{ item.d }} mode=0664 owner={{ www_user }} group={{ www_user }} backup=yes"
   with_items:
     - { s: 'icingaweb2-config.ini.j2', d: '/etc/icingaweb2/config.ini' }
     - { s: 'icingaweb2-resources.ini.j2', d: '/etc/icingaweb2/resources.ini' }
