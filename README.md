@@ -156,6 +156,8 @@ try to restart service
 * icingaweb2: "Failed to send external Icinga command. None of the configured transports was able to transfer the command"
 selinux: No (Ubuntu, only AppArmor)
 
+* role is not idempotent, mostly nagvis part to review
+* doing travis test with docker to do multiple distribution brings issues with mysql so for now, sticking to ubuntu trusty test only.
 
 ## License
 
