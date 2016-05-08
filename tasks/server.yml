@@ -4,9 +4,13 @@
 ## http://lowendbox.com/blog/server-monitoring-with-icinga-2-part-1-the-server-ubuntu-host/
 ## http://serverfault.com/questions/730214/how-to-set-up-icinga2-master-for-remote-clients-without-using-cli-wizard
 
+- include: debian.yml
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 - include: server-debian.yml
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
+- include: redhat.yml
+  when: ansible_os_family == "RedHat" or ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
 - include: server-redhat.yml
   when: ansible_os_family == "RedHat" or ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
 
@@ -91,7 +95,14 @@
   copy: src=modsecurity_crs_90_exceptions_icinga2.conf dest="{{ modsecurity_active }}/modsecurity_crs_90_exceptions_icinga2.conf" mode=0644
 
 - name: add custom commands to icinga2
-  copy: src=commands-custom.conf dest=/etc/icinga2/conf.d/commands-custom.conf mode=0644
+  copy: src=commands-custom.conf dest=/etc/icinga2/conf.d/commands-custom.conf mode=0644 backup=yes
+  notify:
+    - restart icinga2
+  tags:
+    - configure
+- debug: var=icinga2_servicegroups
+- name: add custom groups to icinga2
+  template: src=groups.conf.j2 dest=/etc/icinga2/conf.d/groups.conf mode=0644 backup=yes
   notify:
     - restart icinga2
   tags:

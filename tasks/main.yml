@@ -1,7 +1,8 @@
 ---
 
 ## to avoid dns issue (used in both client and server mode)
-- shell: "ifconfig {{ icinga2_if }} | awk -F'[ :]' '/inet addr/ {print $13}'"
+- name: get icinga2 server ip address
+  shell: "ifconfig {{ icinga2_if }} | awk -F'[ :]' '/inet addr/ {print $13}'"
   changed_when: False
   register: ipaddr
 

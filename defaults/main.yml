@@ -60,6 +60,9 @@ icinga2_nagvis_removedemo: true
 icinga2_nagvis_http_timeout: 3600
 icinga2_nagvis_url: 'http://localhost/nagvis'
 
+#icinga2_servicegroups:
+# - { name: group1, displayname: 'My group', conditions: 'assign where match("disk*", service.check_command)' }
+
 ## Client conf
 
 #icinga2mode: client
