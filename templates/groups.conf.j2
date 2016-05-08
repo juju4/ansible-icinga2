@@ -36,6 +36,7 @@ object ServiceGroup "disk" {
   assign where match("disk*", service.check_command)
 }
 
+{% if icinga2_servicegroups is defined and icinga2_servicegroups %}
 {% for item in icinga2_servicegroups %}
 object ServiceGroup "{{ item.name }}" {
   display_name = "{{ item.displayname }}"
@@ -43,4 +44,5 @@ object ServiceGroup "{{ item.name }}" {
 }
 
 {% endfor %}
+{% endif %}
 
