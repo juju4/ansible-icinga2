@@ -32,6 +32,9 @@ icinga2_apacheconf: /etc/apache2/conf-enabled
 #    - files/services-site2.conf
 
 icinga2_api: false
+## http://docs.icinga.org/icinga2/latest/doc/module/icinga2/chapter/getting-started#setting-up-external-command-pipe
+icinga2_command: false
+icinga2_icli: false
 
 icinga2_mysqlwebdb: icingaweb2
 icinga2_mysqlwebuser: icingaweb2
@@ -60,6 +63,8 @@ icinga2_nagvis_removedemo: true
 icinga2_nagvis_http_timeout: 3600
 icinga2_nagvis_url: 'http://localhost/nagvis'
 
+#icinga2_hostgroups:
+# - { name: group1, displayname: 'My group', conditions: 'assign where match("disk*", service.check_command)' }
 #icinga2_servicegroups:
 # - { name: group1, displayname: 'My group', conditions: 'assign where match("disk*", service.check_command)' }
 
@@ -67,7 +72,8 @@ icinga2_nagvis_url: 'http://localhost/nagvis'
 
 #icinga2mode: client
 icinga2_server: monserver
-icinga2_server_ip: 192.168.0.100
+#icinga2_server_ip: 192.168.0.100
+icinga2_server_ip: "{{ ansible_default_ipv4.address }}"
 ## unixweb, unixserver, clientmac, clientwin, clientlinux
 #monclientype: unixweb
 icinga2_master_port: 5665

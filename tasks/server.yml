@@ -38,9 +38,7 @@
   tags:
     - configure
 - name: Enable api feature in Icinga2
-  command: icinga2 feature enable {{ item }}
-  with_items:
-    - api
+  command: icinga2 feature enable api
   notify:
     - restart icinga2
   when: featurelist.stdout.find("api") == -1 and icinga2_api is defined and icinga2_api
@@ -51,6 +49,21 @@
   when: icinga2_api is defined and icinga2_api
   tags:
     - configure
+- name: Enable command feature in Icinga2
+  command: icinga2 feature enable command
+  notify:
+    - restart icinga2
+  when: featurelist.stdout.find("command") == -1 and icinga2_command is defined and icinga2_command
+  tags:
+    - configure
+- name: add web user to icingacmd group
+  user: name={{ www_user }} groups=icingacmd append=yes
+  notify:
+    - restart icinga2
+  when: featurelist.stdout.find("command") == -1 and icinga2_command is defined and icinga2_command
+  tags:
+    - configure
+
 
 #- group: name=icingaweb2 state=present
 #  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
@@ -271,4 +284,6 @@
     - pnp4nagios
 #  when: chart_module is defined and chart_module == 'graphite'
 
+- include: icli.yml
+  when: icinga2_icli is defined and icinga2_icli
 

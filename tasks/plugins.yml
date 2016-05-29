@@ -9,7 +9,7 @@
 
 ## http://dns.measurement-factory.com/tools/nagios-plugins/check_zone_rrsig_expiration.html
 - name: plugin dnssec expiration
-  get_url: url=http://dns.measurement-factory.com/tools/nagios-plugins/src/check_zone_rrsig_expiration dest=/usr/lib/nagios/plugins/check_zone_rrsig_expiration mode=0755
+  get_url: "url=http://dns.measurement-factory.com/tools/nagios-plugins/src/check_zone_rrsig_expiration dest={{ np }}/check_zone_rrsig_expiration mode=0755"
 
 - name: download samweather plugin
   get_url: url=https://raw.githubusercontent.com/tuxthepenguin84/sam-weather/master/samweather dest={{ np }}/samweather mode=0755

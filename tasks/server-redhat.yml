@@ -68,6 +68,8 @@
 - mysql_db: name=icinga2 state=import target=/usr/share/icinga2-ido-mysql/schema/mysql.sql
   ignore_errors: true
 
+- name: Enforce Timezone in php.ini
+  replace: "dest=/etc/php.ini regexp='^;date.timezone =' replace='date.timezone = {{ tz }}'"
 
 - name: Redhat | Ensure services are enabled
   service: "name={{ item }} enabled=yes"

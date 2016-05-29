@@ -1,17 +1,27 @@
 ---
 ## icli (for icinga1 made to 2) or use icingacli
 
-- name: symlink icinga2 to icinga1
-  file: src={{ item.src }} dest={{ item.dst }} state=link
+#- file: dest=/var/lib/icinga/rw state=directory mode=0755
+- file: dest=/var/lib/icinga2/rw state=directory mode=0755 owner=nagios
+- file: dest=/var/lib/icinga2 state=directory mode=0755 owner=nagios
+
+- name: symlink icinga2 to icinga1 - icli
+  file: src={{ item.src }} dest={{ item.dst }} state=link force={{ item.force }}
   with_items:
-    - { src: /var/lib/icinga2, dst: /var/lib/icinga }
-    - { src: /var/cache/icinga2, dst: /var/cache/icinga }
-    - { src: /var/run/icinga2/cmd/icinga2.cmd, dst: /var/lib/icinga/rw/icinga.cmd }
+    - { src: /var/lib/icinga2, dst: /var/lib/icinga, force: no }
+    - { src: /var/cache/icinga2, dst: /var/cache/icinga, force: no }
+    - { src: /var/run/icinga2/cmd/icinga2.cmd, dst: /var/lib/icinga/rw/icinga.cmd, force: yes }
 
-- file: dest=/var/lib/icinga2/rw mode=0755 owner=nagios
-- file: dest=/var/lib/icinga2 mode=0755 owner=nagios
+- name: configure icinga2 with statusdata - icli
+  copy: src=statusdata.conf dest=/etc/icinga2/features-enabled/statusdata.conf mode=0644
+  notify:
+    - restart icinga2
 
-- template: src=statusdata.conf dest=/etc/icinga2/features-enabled/statusdata.conf mode=0644
-
-- service: name=icinga2 state=restarted
+- name: Enable command feature in Icinga2 - icli
+  command: icinga2 feature enable command
+  notify:
+    - restart icinga2
+  when: featurelist.stdout.find("command") == -1
+  tags:
+    - configure
 
