@@ -166,9 +166,9 @@
   tags:
     - configure
   ignore_errors: true
-- name: symlink pki files from {{ inventory_hostname }} to {{ certificate_cn }}
+- name: "symlink pki files from {{ inventory_hostname }} to {{ certificate_cn }}"
   file: src="{{ icinga2_pki_dir }}/{{ inventory_hostname }}.{{ item }}" dest="{{ icinga2_pki_dir }}/{{ certificate_cn }}.{{ item }}" state=link
-  with_item:
+  with_items:
     - key
     - crt
   when: inventory_hostname != certificate_cn
