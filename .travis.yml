@@ -11,6 +11,7 @@ env:
     version: 7
     init: /usr/lib/systemd/systemd
     run_opts: "--privileged --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro"
+## FIXME! bug similar to https://github.com/ansible/ansible-modules-core/issues/161 on 16.04
   - distribution: ubuntu
     version: 16.04
     init: /lib/systemd/systemd
@@ -50,6 +51,9 @@ script:
 
   # Test role.
   - 'sudo docker exec --tty "$(cat ${container_id})" env TERM=xterm ansible-playbook /etc/ansible/roles/icinga2/test/integration/default/default.yml'
+
+  # check startup log, just in case
+  - 'sudo docker exec --tty "$(cat ${container_id})" cat /var/log/icinga2/startup.log'
 
   # Test role idempotence.
   - >
