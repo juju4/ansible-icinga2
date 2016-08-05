@@ -6,6 +6,9 @@
   changed_when: False
   register: ipaddr
 
+#- include_vars: "{{ansible_distribution}}.{{ansible_distribution_version}}.yml"
+- include_vars: "{{ansible_distribution}}.{{ansible_lsb.major_release|int}}.yml"
+
 - include: server.yml
   when: icinga2mode == 'server'
 

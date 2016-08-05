@@ -22,28 +22,16 @@
     - { name: 'icinga2-ido-mysql', question: 'icinga2-ido-mysql/mysql/app-pass', value: "{{ icinga2_mysqlidopass }}", vtype: 'password' }
     - { name: 'icinga2-ido-mysql', question: 'icinga2-ido-mysql/mysql/app-password-confirm', value: "{{ icinga2_mysqlidopass }}", vtype: 'password' }
 
-- name: Debian | Extra packages install
+- name: Debian | Server dependencies install
   apt: name={{item}} state=present update_cache=yes
-  with_items:
-    - apache2
-    - libapache2-mod-php5
-    - php5-gd
-    - php5-imagick
-    - mysql-server
-    - git
-    - apache2-utils
-    - php5-intl
-    - php5-ldap
-    - php5-mysql
-    - python-passlib
-    - python-mysqldb
+  with_items: "{{ icinga2_server_deps }}"
 - name: Debian | Extra packages install
   apt: name={{item}} state=present install_recommends=no
   with_items:
     - nagios-nrpe-plugin
 
 - name: Ubuntu i386/x86_64 | add icinga packages repository
-  apt_repository: repo='deb http://packages.icinga.org/ubuntu icinga-trusty main' state=present
+  apt_repository: repo='deb http://packages.icinga.org/ubuntu icinga-{{ ansible_distribution_release }} main' state=present
   when: ansible_distribution == 'Ubuntu' and (ansible_architecture == 'i386' or ansible_architecture == 'x86_64')
 - name: Ubuntu i386/x86_64 | add icinga packages repository key
   apt_key: url=http://packages.icinga.org/icinga.key state=present
@@ -107,7 +95,7 @@
     - restart apache
 
 - name: Enforce Timezone in php.ini
-  replace: "dest=/etc/php5/apache2/php.ini regexp='^;date.timezone =' replace='date.timezone = {{ tz }}'"
+  replace: "dest={{ icinga2_phpconf }}/apache2/php.ini regexp='^;date.timezone =' replace='date.timezone = {{ tz }}'"
 
 - name: Debian | Ensure services are enabled
   service: "name={{ item }} enabled=yes"

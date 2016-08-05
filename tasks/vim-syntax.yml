@@ -10,7 +10,7 @@
 - name: replicate icinga2 vim syntax file (1) - non-root
   command: "rsync -ci {{ icinga2_vimsyntax }}/vim/syntax/icinga2.vim /home/{{ icinga2_user }}/.vim/syntax/"
   register: rsync_result
-  changed_when: 'rsync_result.stdout != ""' 
+  changed_when: 'rsync_result.stdout != ""'
   when: icinga2_user != 'root' and icinga2_user != '_icinga2'
 
 - name: replicate icinga2 vim syntax file (2) - non-root
@@ -30,7 +30,7 @@
 #- name: replicate icinga2 vim syntax file (1) - root
 #  command: "rsync -ci {{ icinga2_vimsyntax }}/vim/syntax/icinga2.vim /root/.vim/syntax/"
 #  register: rsync_result
-#  changed_when: 'rsync_result.stdout != ""' 
+#  changed_when: 'rsync_result.stdout != ""'
 #  when: icinga2_user == 'root'
 #
 #- name: replicate icinga2 vim syntax file (2) - root

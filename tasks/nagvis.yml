@@ -5,17 +5,7 @@
 
 - name: apt | nagvis dependencies install
   apt: name={{item}} state=present
-  with_items:
-    - sqlite3
-    - graphviz
-    - libgraphviz-perl
-    - php5-gd
-    - php5-sqlite
-#    - php5-gettext
-#    - php5-mbstring
-#    - php5-session
-#    - php5-pdo
-#    - php5-pdo-sqlite
+  with_items: "{{ icinga2_nagvis_debian }}"
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
 - stat: path=/root/nagvis-{{ icinga2_nagvis_v }}.tar.gz

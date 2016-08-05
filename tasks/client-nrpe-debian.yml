@@ -11,7 +11,7 @@
     - libdatetime-format-strptime-perl
     - libnagios-plugin-perl
     - openssh-server
-    - lm-sensors 
+    - lm-sensors
     - libhtml-strip-perl
     - acl
 

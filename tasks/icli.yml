@@ -17,11 +17,12 @@
   notify:
     - restart icinga2
 
+- debug: var=featurelist
 - name: Enable command feature in Icinga2 - icli
   command: icinga2 feature enable command
   notify:
     - restart icinga2
-  when: featurelist.stdout.find("command") == -1
+  when: featurelist is not defined or featurelist.stdout.find("command") == -1
   tags:
     - configure
 

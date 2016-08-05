@@ -5,6 +5,7 @@
     - rabbitmq_conf_ssl_listeners_address: 0.0.0.0
     - icinga2_api: true
     - icinga2_icli: true
+    - chart_module: pnp4nagios
   roles:
-    - { role: icinga2, chart_module: pnp4nagios }
+    - icinga2
 

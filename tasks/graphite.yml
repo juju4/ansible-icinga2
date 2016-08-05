@@ -57,7 +57,8 @@
     - restart carbon-cache
   when: graphite_carbon_localhostonly is defined and graphite_carbon_localhostonly
 
-- postgresql_db: name=graphite
+- name: create graphite db
+  postgresql_db: name=graphite
   become: yes
   become_user: postgres
   when: graphite_backend is defined and graphite_backend == 'postgresql'
@@ -67,16 +68,19 @@
 #  become_user: postgres
 #  when: graphite_backend is defined and graphite_backend == 'postgresql'
 
-- shell: "openssl rand -base64 32 | sed 's@[=\\/\\+]@@g;'"
+- name: generate a salt for graphite
+  shell: "openssl rand -base64 32 | sed 's@[=\\/\\+]@@g;'"
   changed_when: False
   register: graphitesalt
-- lineinfile: dest=/etc/graphite/local_settings.py regexp="{{ item.regexp }}" line="{{ item.line }}" backup=yes
+- name: write local settings of graphite
+  lineinfile: dest=/etc/graphite/local_settings.py regexp="{{ item.regexp }}" line="{{ item.line }}" backup=yes
   with_items:
     - { regexp: "^#SECRET_KEY = ", line: "SECRET_KEY = \'{{ graphitesalt.stdout }}\'" }
     - { regexp: '^TIME_ZONE = ', line: "TIME_ZONE = '{{ tz }}'" }
     - { regexp: '^USE_REMOTE_USER_AUTHENTICATION = ', line: 'USE_REMOTE_USER_AUTHENTICATION = True' }
 
-- replace: dest=/etc/graphite/local_settings.py regexp="{{ item.regexp }}" replace="{{ item.replace }}"
+- name: write local settings of graphite - if postgresql
+  replace: dest=/etc/graphite/local_settings.py regexp="{{ item.regexp }}" replace="{{ item.replace }}"
   with_items:
 #    - { regexp: "^#SECRET_KEY = \'UNSAFE_DEFAULT\'", line: "SECRET_KEY = \'{{ graphitesalt.stdout }}\'" }
     - { regexp: "'NAME': '/var/lib/graphite/graphite.db'", replace: "'NAME': 'graphite'" }

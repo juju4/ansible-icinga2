@@ -1,0 +1,30 @@
+---
+
+icinga2_server_deps:
+    - apache2
+    - libapache2-mod-php5
+    - php5-gd
+    - php5-imagick
+    - mysql-server
+    - git
+    - apache2-utils
+    - php5-intl
+    - php5-ldap
+    - php5-mysql
+    - python-passlib
+    - python-mysqldb
+
+icinga2_phpconf: /etc/php5
+
+icinga2_nagvis_debian:
+    - sqlite3
+    - graphviz
+    - libgraphviz-perl
+    - php5-gd
+    - php5-sqlite
+#    - php5-gettext
+#    - php5-mbstring
+#    - php5-session
+#    - php5-pdo
+#    - php5-pdo-sqlite
+
