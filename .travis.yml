@@ -3,15 +3,15 @@
 sudo: required
 
 env:
-## FIXME! travis execution stopping in middle of ansible playbook?
-  - distribution: centos
-    version: 6
-    init: /sbin/init
-    run_opts: ""
-  - distribution: centos
-    version: 7
-    init: /usr/lib/systemd/systemd
-    run_opts: "--privileged --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro"
+### FIXME! travis execution stopping in middle of ansible playbook?
+#  - distribution: centos
+#    version: 6
+#    init: /sbin/init
+#    run_opts: ""
+#  - distribution: centos
+#    version: 7
+#    init: /usr/lib/systemd/systemd
+#    run_opts: "--privileged --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro"
 ## FIXME! bug similar to https://github.com/ansible/ansible-modules-core/issues/161 on 16.04
   - distribution: ubuntu
     version: 16.04
@@ -37,6 +37,7 @@ before_install:
   - env
   - pwd
   - find -ls
+  - cp test/travis/initctl_faker test/
   # Customize container
   - 'sudo docker build --rm=true --file=test/travis/Dockerfile.${distribution}-${version} --tag=${distribution}-${version}:ansible test'
 
