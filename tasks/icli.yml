@@ -22,7 +22,7 @@
   command: icinga2 feature enable command
   notify:
     - restart icinga2
-  when: featurelist is not defined or featurelist.stdout.find("command") == -1
+  when: featurelist is not defined or featurelist.stdout is not defined or featurelist.stdout.find("command") == -1
   tags:
     - configure
 
