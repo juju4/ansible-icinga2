@@ -166,8 +166,13 @@
   tags:
     - configure
   ignore_errors: true
-- name: symlink crt from {{ inventory_hostname }} to {{ certificate_cn }}
-  file: src="{{ icinga2_pki_dir }}/{{ inventory_hostname }}.crt" dest="{{ icinga2_pki_dir }}/{{ certificate_cn }}.crt" state=link
+- name: symlink pki files from {{ inventory_hostname }} to {{ certificate_cn }}
+  file: src="{{ icinga2_pki_dir }}/{{ inventory_hostname }}.{{ item }}" dest="{{ icinga2_pki_dir }}/{{ certificate_cn }}.{{ item }}" state=link
+  with_item:
+    - key
+    - crt
+  when: inventory_hostname != certificate_cn
+
 - name: ensure there is no crash report
   command: "cat /var/log/icinga2/crash/report.*"
   ignore_errors: true

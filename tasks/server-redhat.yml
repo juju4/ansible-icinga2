@@ -33,6 +33,7 @@
     - icingaweb2
     - icingacli
     - MySQL-python
+    - vixie-cron
 - name: Redhat | Ensure services are started
   service: "name={{ item }} state=started"
   with_items:
