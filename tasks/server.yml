@@ -48,7 +48,7 @@
     - configure
 - name: add bind_host for api
   lineinfile: dest=/etc/icinga2/features-available/api.conf regexp='^  bind_host = ' line='  bind_host = "{{ icinga2_server_ip }}"' insertafter='ca_path'
-  when: icinga2_api is defined and icinga2_api
+  when: icinga2_api is defined and icinga2_api and icinga2_server_ip is defined and icinga2_server_ip != ''
   tags:
     - configure
 - name: Enable command feature in Icinga2
@@ -166,6 +166,8 @@
   tags:
     - configure
   ignore_errors: true
+- name: symlink crt from {{ inventory_hostname }} to {{ certificate_cn }}
+  file: src="{{ icinga2_pki_dir }}/{{ inventory_hostname }}.crt" dest="{{ icinga2_pki_dir }}/{{ certificate_cn }}.crt" state=link
 - name: ensure there is no crash report
   command: "cat /var/log/icinga2/crash/report.*"
   ignore_errors: true
