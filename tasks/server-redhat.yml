@@ -23,17 +23,7 @@
             value=1
 - name: Redhat | Install icinga2 packages
   yum: name={{item}} state=present update_cache=yes
-  with_items:
-    - icinga2
-    - nagios-plugins-all
-    - mariadb-server
-    - mariadb
-    - icinga2-ido-mysql
-    - httpd
-    - icingaweb2
-    - icingacli
-    - MySQL-python
-    - vixie-cron
+  with_items: "{{ icinga2_server_deps }}"
 - name: Redhat | Ensure services are started
   service: "name={{ item }} state=started"
   with_items:

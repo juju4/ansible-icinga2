@@ -1,0 +1,14 @@
+---
+
+icinga2_server_deps:
+    - icinga2
+    - nagios-plugins-all
+    - mariadb-server
+    - mariadb
+    - icinga2-ido-mysql
+    - httpd
+    - icingaweb2
+    - icingacli
+    - MySQL-python
+    - vixie-cron
+
