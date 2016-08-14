@@ -215,7 +215,7 @@
 
 ### restore existing backup ?
 ### failed: [158.69.212.202 -> 127.0.0.1] => {"failed": true, "parsed": false}
-### [sudo via ansible, key=bpnjqugecgiwedfhzjjozeuxttscxgas] password: 
+### [sudo via ansible, key=bpnjqugecgiwedfhzjjozeuxttscxgas] password:
 #- local_action: stat path=backup-icinga2.tar.gz
 ##- stat: path=backup-icinga2.tar.gz
 #  register: localbackup

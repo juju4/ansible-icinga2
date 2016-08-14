@@ -75,7 +75,7 @@
 - name: write local settings of graphite
   lineinfile: dest=/etc/graphite/local_settings.py regexp="{{ item.regexp }}" line="{{ item.line }}" backup=yes
   with_items:
-    - { regexp: "^#SECRET_KEY = ", line: "SECRET_KEY = \'{{ graphitesalt.stdout }}\'" }
+    - { regexp: "^#SECRET_KEY = ", line: "SECRET_KEY = \\'{{ graphitesalt.stdout }}\\'" }
     - { regexp: '^TIME_ZONE = ', line: "TIME_ZONE = '{{ tz }}'" }
     - { regexp: '^USE_REMOTE_USER_AUTHENTICATION = ', line: 'USE_REMOTE_USER_AUTHENTICATION = True' }
 
