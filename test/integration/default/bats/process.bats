@@ -41,11 +41,12 @@ setup() {
 #    [[ "$output" != "" ]]
 #}
 
-@test "Pnp4nagios url should be accessible" {
-    run curl -sSqL http://localhost/pnp4nagios/
-    [ "$status" -eq 0 ]
-    [[ "$output" =~ "<!DOCTYPE html PUBLIC" ]]
-}
+## Not valid on xenial
+#@test "Pnp4nagios url should be accessible" {
+#    run curl -sSqL http://localhost/pnp4nagios/
+#    [ "$status" -eq 0 ]
+#    [[ "$output" =~ "<!DOCTYPE html PUBLIC" ]]
+#}
 
 @test "Nagvis url should be accessible" {
     run curl -sSqL http://localhost/nagvis/

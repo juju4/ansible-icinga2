@@ -10,9 +10,23 @@ object Endpoint "{{ ansible_fqdn }}" {
     port = "5665"
 }
 
+{% if ansible_fqdn != ansible_hostname %}
+## critical/config: Error: Endpoint object for 'hostname_short' is missing.
+object Endpoint "{{ ansible_hostname }}" {
+{% if ipaddr.stdout is defined %}
+    host = "{{ ipaddr.stdout }}"
+{% endif %}
+    port = "5665"
+}
+
+object Zone "master" {
+	//this is the local node master named  = "master"
+	endpoints = [ "{{ ansible_fqdn }}", "{{ ansible_hostname }}" ]
+}
+{% else %}
 object Zone "master" {
 	//this is the local node master named  = "master"
 	endpoints = [ "{{ ansible_fqdn }}" ]
 }
-
+{% endif %}
 

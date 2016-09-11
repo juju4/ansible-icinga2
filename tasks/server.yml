@@ -122,12 +122,12 @@
     - restart icinga2
   tags:
     - configure
-- name: add manubulon snmp commands to icinga2
-  file: src=/usr/share/icinga2/include/command-plugins-manubulon.conf dest=/etc/icinga2/conf.d/command-plugins-manubulon.conf state=link
-  notify:
-    - restart icinga2
-  tags:
-    - configure
+#- name: add manubulon snmp commands to icinga2
+#  file: src=/usr/share/icinga2/include/command-plugins-manubulon.conf dest=/etc/icinga2/conf.d/command-plugins-manubulon.conf state=link
+#  notify:
+#    - restart icinga2
+#  tags:
+#    - configure
 
 - name: generate a salt with openssl
   shell: "openssl rand -base64 32 | sed 's@[=\\/\\+]@@g;'"
