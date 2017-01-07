@@ -3,6 +3,7 @@
 icinga2_server_deps:
     - apache2
     - libapache2-mod-php5
+    - snmp
     - php5-gd
     - php5-imagick
     - mysql-server

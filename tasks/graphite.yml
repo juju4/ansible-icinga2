@@ -75,7 +75,7 @@
 - name: write local settings of graphite
   lineinfile: dest=/etc/graphite/local_settings.py regexp="{{ item.regexp }}" line="{{ item.line }}" backup=yes
   with_items:
-    - { regexp: "^#SECRET_KEY = ", line: "SECRET_KEY = \\'{{ graphitesalt.stdout }}\\'" }
+    - { regexp: "^#SECRET_KEY = ", line: "SECRET_KEY = \\'{{ graphitesalt.stdout | default('nueebAfXLRynezMbpkCg6TkLk6NM4c084Snnjtuk6m0') }}\\'" }
     - { regexp: '^TIME_ZONE = ', line: "TIME_ZONE = '{{ tz }}'" }
     - { regexp: '^USE_REMOTE_USER_AUTHENTICATION = ', line: 'USE_REMOTE_USER_AUTHENTICATION = True' }
 
@@ -140,10 +140,13 @@
   when: graphite_backend is defined and graphite_backend == 'sqlite'
 
 ## https://github.com/graphite-project/graphite-web/issues/789
-- file: src=/usr/share/javascript/jquery-flot/jquery.flot.time.js dest=/usr/share/graphite-web/static/js/jquery.flot.time.js state=link
-- lineinfile: dest=/usr/lib/python2.7/dist-packages/graphite/templates/graphlot.html line='    <script type="text/javascript" src="../content/js/jquery.flot.time.js"></script>' insertafter='<script type="text/javascript" src="../content/js/jquery.flot.crosshair.js"></script>'
+- name: ensure jquery symlink is present
+  file: src=/usr/share/javascript/jquery-flot/jquery.flot.time.js dest=/usr/share/graphite-web/static/js/jquery.flot.time.js state=link
+- name: map correct jquery file
+  lineinfile: dest=/usr/lib/python2.7/dist-packages/graphite/templates/graphlot.html line='    <script type="text/javascript" src="../content/js/jquery.flot.time.js"></script>' insertafter='<script type="text/javascript" src="../content/js/jquery.flot.crosshair.js"></script>'
 
-- service: name=carbon-cache enabled=yes
+- name: ensure service carbon-cache is enabled
+  service: name=carbon-cache enabled=yes
   notify:
     - restart carbon-cache
 

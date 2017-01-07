@@ -13,6 +13,8 @@ icinga2_server_deps:
     - php-mysql
     - python-passlib
     - python-mysqldb
+## required for snmpget/check_snmp
+    - snmp
 
 icinga2_phpconf: /etc/php/7.0
 

@@ -16,9 +16,11 @@ object HostGroup "windows-servers" {
 
 {% if icinga2_hostgroups is defined and icinga2_hostgroups %}
 {% for item in icinga2_hostgroups %}
-object ServiceGroup "{{ item.name }}" {
+object HostGroup "{{ item.name }}" {
   display_name = "{{ item.displayname }}"
+{% if item.conditions is defined and item.conditions != '' %}
   {{ item.conditions }}
+{% endif %}
 }
 
 {% endfor %}

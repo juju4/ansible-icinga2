@@ -5,15 +5,12 @@ python: "2.7"
 before_install:
  - sudo apt-get update -qq
  - sudo apt-get install -qq python-apt python-pycurl
- - ln -s ansible-icinga2 ../icinga2
-# - ./get-dependencies.sh
+ - "[ -f get-dependencies.sh ] && sh -x get-dependencies.sh"
 ## for local travis execution as we use same default.yml than kitchen
  - mkdir /tmp/kitchen
- - ln -s /home/travis/build/juju4/ansible-icinga2/test/integration/default/tmp /tmp/kitchen/tmp
 ## serverspec test
  - sudo apt-get install -qq ruby2.0 rake
  - sudo gem2.0 install serverspec
- - ln -s /home/travis/build/juju4/ansible-icinga2/test/integration/default/serverspec/Rakefile
 install:
   - pip install ansible
   - ansible --version

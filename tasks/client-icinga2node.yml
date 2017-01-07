@@ -41,7 +41,8 @@
   notify:
     - restart icinga2
 
-- template: src=zones.conf dest="/etc/icinga2/zones.conf" mode=0644 backup=yes
+- name: configure icinga2 zones.conf
+  template: src=zones.conf dest="/etc/icinga2/zones.conf" mode=0644 backup=yes
 
 #- template: src=zones-append.conf dest="/etc/icinga2/zones-append.conf" mode=0644
 #  delegate_to: "{{ icinga2_server }}"
@@ -55,8 +56,10 @@
 #  when: zonesready.stdout.find({{ ansible_fqdn }}) == -1
 #  delegate_to: "{{ icinga2_server }}"
 
-- file: dest="{{ icinga2_pki_dir }}" state=directory mode=0700 owner=nagios
-- stat: path="{{ icinga2_pki_dir }}/{{ inventory_hostname }}.key"
+- name: check permissions of icinga2 pki directory
+  file: dest="{{ icinga2_pki_dir }}" state=directory mode=0700 owner=nagios
+- name: check if existing key
+  stat: path="{{ icinga2_pki_dir }}/{{ inventory_hostname }}.key"
   register: nodekey
 - name: icinga2 client node | configure icinga2 client pki
 ## http://lowendbox.com/blog/server-monitoring-with-icinga-2-part-2-the-node-ubuntu-host/
@@ -65,8 +68,8 @@
   with_items:
     - "icinga2 pki new-cert --cn {{ certificate_cn }} --key {{ icinga2_pki_dir }}/{{ inventory_hostname }}.key --cert {{ icinga2_pki_dir }}/{{ inventory_hostname }}.crt"
     - "icinga2 pki save-cert --key {{ icinga2_pki_dir }}/{{ inventory_hostname }}.key --cert {{ icinga2_pki_dir }}/{{ inventory_hostname }}.crt --trustedcert {{ icinga2_pki_dir }}/trusted-master.crt --host {{ icinga2_server }}"
-    - "icinga2 pki request --host {{ icinga2_server }} --port {{ icinga2_master_port }} --ticket {{ ticket.stdout }} --key {{ icinga2_pki_dir }}/{{ inventory_hostname }}.key --cert {{ icinga2_pki_dir }}/{{ inventory_hostname }}.crt --trustedcert {{ icinga2_pki_dir }}/trusted-master.crt --ca {{ icinga2_pki_dir }}/ca.key"
-    - "icinga2 node setup --ticket {{ ticket.stdout }} --endpoint {{ icinga2_server }} --zone {{ inventory_hostname }} --master_host {{ icinga2_server }} --trustedcert {{ icinga2_pki_dir }}/trusted-master.crt"
+    - "icinga2 pki request --host {{ icinga2_server }} --port {{ icinga2_master_port }} --ticket {{ ticket.stdout | default('') }} --key {{ icinga2_pki_dir }}/{{ inventory_hostname }}.key --cert {{ icinga2_pki_dir }}/{{ inventory_hostname }}.crt --trustedcert {{ icinga2_pki_dir }}/trusted-master.crt --ca {{ icinga2_pki_dir }}/ca.key"
+    - "icinga2 node setup --ticket {{ ticket.stdout | default('') }} --endpoint {{ icinga2_server }} --zone {{ inventory_hostname }} --master_host {{ icinga2_server }} --trustedcert {{ icinga2_pki_dir }}/trusted-master.crt"
   become: yes
   become_user: nagios
   when: not nodekey.stat.exists and ticket.stdout is defined

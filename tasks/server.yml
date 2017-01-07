@@ -83,18 +83,24 @@
 - stat: path=/root/.icingaweb2_token
   register: tokenfile
 #- shell: "/usr/share/icingaweb2/bin/icingacli setup token create | tee /root/.icingaweb2_token"
-- shell: "icingacli setup token create | tee /root/.icingaweb2_token"
+- name: create icingaweb2 token
+  shell: "icingacli setup token create | tee /root/.icingaweb2_token"
   register: token
   when: not tokenfile.stat.exists
 - debug: var=token
   when: not tokenfile.stat.exists
 
-- file: path=/var/log/icingaweb2 state=directory mode=0755 owner="{{ www_user }}"
-- file: path=/etc/icingaweb2 state=directory mode=0755 owner="{{ www_user }}"
-- file: path=/etc/icingaweb2/enabledModules state=directory mode=0755 owner="{{ www_user }}"
-- file: path=/etc/icingaweb2/modules state=directory mode=0755 owner="{{ www_user }}"
-- file: path=/etc/icingaweb2/modules/monitoring state=directory mode=0755 owner="{{ www_user }}"
-- file: path=/etc/icingaweb2/monitoring state=directory mode=0755 owner="{{ www_user }}"
+- name: ensure right permissions
+  file: path={{ item }} state=directory mode=0755 owner="{{ www_user }}"
+  with_items:
+    - /var/log/icingaweb2
+    - /var/log/icingaweb2/enabledModules
+    - /var/log/icingaweb2/modules
+    - /var/log/icingaweb2/modules/monitoring
+    - /var/log/icingaweb2/monitoring
+    - /etc/icingaweb2/modules/monitoring
+    - /etc/icingaweb2/enabledModules
+
 #- htpasswd: path=/usr/share/icingaweb2/public/.htpass name={{ icinga2_webuser }} password={{ icinga2_webpass }} owner=root group="{{ www_user }}" mode=0640
 #  when: webuser is defined and webpass is defined
 #- copy: src=icingaweb2-htaccess.conf dest={{ icinga2_apacheconf }}/icingaweb2-htaccess.conf mode=0644
@@ -122,6 +128,7 @@
     - restart icinga2
   tags:
     - configure
+## already included
 #- name: add manubulon snmp commands to icinga2
 #  file: src=/usr/share/icinga2/include/command-plugins-manubulon.conf dest=/etc/icinga2/conf.d/command-plugins-manubulon.conf state=link
 #  notify:
@@ -167,7 +174,8 @@
     - configure
   ignore_errors: true
 - name: "symlink pki files from {{ inventory_hostname }} to {{ certificate_cn }}"
-  file: src="{{ icinga2_pki_dir }}/{{ inventory_hostname }}.{{ item }}" dest="{{ icinga2_pki_dir }}/{{ certificate_cn }}.{{ item }}" state=link
+#  file: src="{{ icinga2_pki_dir }}/{{ inventory_hostname }}.{{ item }}" dest="{{ icinga2_pki_dir }}/{{ certificate_cn }}.{{ item }}" state=link
+  file: src="{{ icinga2_pki_dir }}/{{ certificate_cn }}.{{ item }}" dest="{{ icinga2_pki_dir }}/{{ inventory_hostname }}.{{ item }}" state=link
   with_items:
     - key
     - crt
@@ -236,7 +244,7 @@
       with_items: "{{ icinga2_extra_conf_files }}"
       notify:
         - restart icinga2
-  when: icinga2_extra_conf_files is defined and icinga2_extra_conf_files != ""
+  when: icinga2_extra_conf_files is defined and icinga2_extra_conf_files != []
 
 - debug: msg="End configuration by connecting on http://{{ ansible_fqdn}} and entering token {{ token }}"
   when: not tokenfile.stat.exists
@@ -280,12 +288,12 @@
 
 ## FIXME! no pnp4nagios in xenial, http://packages.ubuntu.com/search?suite=xenial&keywords=pnp4nagios
 - include: pnp4nagios.yml
-  when: chart_module is defined and chart_module == 'pnp4nagios' and (ansible_distribution != 'Ubuntu' or ansible_lsb.major_release|int < 16)
+  when: icinga2_chart_module is defined and icinga2_chart_module == 'pnp4nagios' and (ansible_distribution != 'Ubuntu' or ansible_lsb.major_release|int < 16)
   tags:
     - pnp4nagios
 
 - include: graphite.yml
-  when: chart_module is defined and chart_module == 'graphite'
+  when: icinga2_chart_module is defined and icinga2_chart_module == 'graphite'
   tags:
     - graphite
 
@@ -304,4 +312,11 @@
 
 - include: icli.yml
   when: icinga2_icli is defined and icinga2_icli
+
+- block:
+    - name: ensure aide.conf.d directory exists
+      file: dest=/etc/aide/aide.conf.d state=directory mode=0755
+    - name: add additional aide HIDS configuration
+      copy: src=99_aide_local_icinga2 dest=/etc/aide/aide.conf.d/99_aide_local_icinga2 mode=0644
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 

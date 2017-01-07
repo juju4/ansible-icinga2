@@ -26,6 +26,7 @@ icinga2_apacheconf: /etc/apache2/conf-enabled
 #icinga2_webuser: admini
 #icinga2_webpass: admini
 
+icinga2_extra_conf_files: []
 #icinga2_extra_conf_files:
 #    - files/hosts-site1.conf
 #    - files/hosts-site2.conf
@@ -54,7 +55,10 @@ icinga2_graphite_backend: sqlite
 icinga2_graphite_base_url: http://127.0.0.1:1588
 icinga2_graphite_carbon_localhostonly: true
 
+## stable
 icinga2_nagvis_v: 1.8.5
+## testing
+#icinga2_nagvis_v: 1.9b10
 icinga2_nagvis_logonmodule: 'LogonMixed'
 #icinga2_nagvis_logonmodule: 'LogonEnv'
 #icinga2_nagvis_logonmodule: 'LogonDialog'
@@ -62,6 +66,8 @@ icinga2_nagvis_logonmodule: 'LogonMixed'
 icinga2_nagvis_removedemo: true
 icinga2_nagvis_http_timeout: 3600
 icinga2_nagvis_url: 'http://localhost/nagvis'
+icinga2_nagvis_enable_sound: true
+icinga2_nagvis_enable_jslog: true
 
 #icinga2_hostgroups:
 # - { name: group1, displayname: 'My group', conditions: 'assign where match("disk*", service.check_command)' }
@@ -80,4 +86,6 @@ icinga2_master_port: 5665
 icinga2_pki_dir: /etc/icinga2/pki
 icinga2_if: eth0
 
+
+icinga2_plugins_extra: []
 

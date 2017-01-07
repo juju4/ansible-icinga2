@@ -3,6 +3,7 @@
 icinga2_server_deps:
     - icinga2
     - nagios-plugins-all
+    - net-snmp-utils
     - mariadb-server
     - mariadb
     - icinga2-ido-mysql

@@ -1,0 +1,10 @@
+## aide.conf for icinga2
+/var/lib/icinga2$ VarDir
+/var/lib/icinga2/icinga2.state$ VarFile
+/var/lib/icinga2/modified-attributes.conf$ OwnerMode
+!/var/spool/icinga2
+!/var/lib/graphite/whisper/carbon/agents
+/usr/local/nagvis-1.8.5/var/automap.hostids$ VarFile
+/usr/local/nagvis-1.8.5/var/nagvis-automap.dot$ VarFile
+/usr/local/nagvis-1.8.5/var/source-nagvis-.*\.cache$ VarFile
+/var/lib/mysql/ib_logfile[0-9]+A$ VarFile

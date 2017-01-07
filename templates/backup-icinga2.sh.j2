@@ -34,7 +34,14 @@ sudo -u postgres pg_dumpall > $dest/pgdumpall.sql
 ## icingaweb2 backend
 mysqldump --opt --all-databases > $dest/mysqldumpall.sql
 
-tar czf $dest/backup-icinga2.tar.gz $dirs $dest/pgdumpall.sql $dest/mysqldumpall.sql
+{% if icinga2_graphite_backend is defined and icinga2_graphite_backend == 'postgresql' %}
+tar czf $dest/backup-icinga2.tar.gz $dirs $dest/pgdumpall.sql $dest/mysqldumpall.sql > /dev/null
 rm $dest/pgdumpall.sql $dest/mysqldumpall.sql
+{% else %}
+tar czf $dest/backup-icinga2.tar.gz $dirs $dest/mysqldumpall.sql > /dev/null
+rm $dest/mysqldumpall.sql
+{% endif %}
+
+## test backup
 tar tzf $dest/backup-icinga2.tar.gz > /dev/null
 

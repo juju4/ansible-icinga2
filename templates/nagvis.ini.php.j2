@@ -34,6 +34,16 @@ sesscookiesecure=1
 htmlcgi="/icingaweb2/monitoring"
 
 [defaults]
+{% if icinga2_nagvis_enable_sound %}
+eventsound=1
+{% else %}
+eventsound=0
+{% endif %}
+{% if icinga2_nagvis_enable_jslog %}
+eventlog=1
+{% else %}
+eventlog=0
+{% endif %}
 hosturl="[htmlcgi]/host/show?host=[host_name]"
 hostgroupurl="[htmlcgi]/list/hosts?hostgroup_name=[hostgroup_name]"
 serviceurl="[htmlcgi]/service/show?host=[host_name]&service=[service_description]"
@@ -41,4 +51,10 @@ serviceurl="[htmlcgi]/service/show?host=[host_name]&service=[service_description
 [backend_live_1]
 backendtype="mklivestatus"
 socket="unix:/var/run/icinga2/cmd/livestatus"
+
+; https://monitoring-portal.org/index.php?thread/26884-status-of-hosts-does-not-change-unless-refreshed/ better if interval > updateobjectstates
+; http://docs.nagvis.org/1.8/en_US/nagvis_config_format_description.html
+[worker]
+interval=60
+updateobjectstates=45
 
