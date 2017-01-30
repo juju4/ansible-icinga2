@@ -1,4 +1,5 @@
-[![Build Status](https://travis-ci.org/juju4/ansible-icinga2.svg?branch=master)](https://travis-ci.org/juju4/ansible-icinga2)
+[![Build Status - Master](https://travis-ci.org/juju4/ansible-icinga2.svg?branch=master)](https://travis-ci.org/juju4/ansible-icinga2)
+[![Build Status - Devel](https://travis-ci.org/juju4/ansible-icinga2.svg?branch=devel)](https://travis-ci.org/juju4/ansible-icinga2/branches)
 # Icinga2 ansible role
 
 Ansible role to setup Icinga2 server with optional plugins like pnp4nagios, graphite or nagvis
