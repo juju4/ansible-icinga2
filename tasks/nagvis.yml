@@ -63,9 +63,11 @@
 #  command: chown -R {{ www_user }} /usr/local/nagvis
   file: dest="/usr/local/nagvis-{{ icinga2_nagvis_v }}" state=directory recurse=yes owner={{ www_user }}
 ## https://github.com/ansible/ansible-modules-core/issues/468
-- file: path=/etc/nagvis/nagvis.ini.php mode=0664 state=file
+- name: ensure right permissions for nagvis files and dir
+  file: path=/etc/nagvis/nagvis.ini.php mode=0664 state=file
 - file: dest=/usr/local/nagvis/etc mode=0775 state=directory owner={{ www_user }}
 - file: dest=/usr/local/nagvis/etc/maps mode=0775
+## FIXME! local fileglob NOK anymore ...
 - file: dest={{ item }} mode=0664
   with_fileglob:
     - /usr/local/nagvis/etc/maps/*

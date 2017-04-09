@@ -149,12 +149,14 @@
     - { regexp: '^//const NodeName = "localhost"', replace: 'const NodeName = "{{ ansible_fqdn }}"' }
   notify:
     - restart icinga2
+  no_log: true
   tags:
     - configure
 
 ## conflict with command: icinga2 pki new-ca = Error: stdout: critical/cli: CA directory '/var/lib/icinga2/ca' already exists.
 #- file: dest=/var/lib/icinga2/ca state=directory mode=0755 owner=nagios group=nagios
-- file: dest={{ icinga2_pki_dir }} state=directory mode=0755 owner="{{ icinga2_pki_userdir }}" group="{{ icinga2_pki_userdir }}"
+- name: ensure right permissions for icinga2 pki dir
+  file: dest={{ icinga2_pki_dir }} state=directory mode=0755 owner="{{ icinga2_pki_userdir }}" group="{{ icinga2_pki_userdir }}"
 - stat: path=/var/lib/icinga2/ca/ca.crt
   register: cafile
   tags:
@@ -173,13 +175,15 @@
   tags:
     - configure
   ignore_errors: true
+- stat: path="{{ icinga2_pki_dir }}/{{ certificate_cn }}.crt"
+  register: crtf
 - name: "symlink pki files from {{ inventory_hostname }} to {{ certificate_cn }}"
   file: src="{{ icinga2_pki_dir }}/{{ inventory_hostname }}.{{ item }}" dest="{{ icinga2_pki_dir }}/{{ certificate_cn }}.{{ item }}" state=link
 #  file: src="{{ icinga2_pki_dir }}/{{ certificate_cn }}.{{ item }}" dest="{{ icinga2_pki_dir }}/{{ inventory_hostname }}.{{ item }}" state=link
   with_items:
     - key
     - crt
-  when: inventory_hostname != certificate_cn
+  when: inventory_hostname != certificate_cn and not crtf.stat.exists
 
 - name: ensure there is no crash report
   command: "cat /var/log/icinga2/crash/report.*"

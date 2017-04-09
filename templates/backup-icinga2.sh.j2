@@ -4,7 +4,9 @@
 export PATH=/usr/sbin:/usr/bin:/sbin:/bin
 umask 022
 
+date=`date +%Y-%m-%d`
 dest={{ backupdir }}
+f=$dest/backup-icinga2-$date.tar.gz
 
 dirs="/etc/icinga2 /etc/icingaweb2 \
     /etc/apache2 \
@@ -35,13 +37,14 @@ sudo -u postgres pg_dumpall > $dest/pgdumpall.sql
 mysqldump --opt --all-databases > $dest/mysqldumpall.sql
 
 {% if icinga2_graphite_backend is defined and icinga2_graphite_backend == 'postgresql' %}
-tar czf $dest/backup-icinga2.tar.gz $dirs $dest/pgdumpall.sql $dest/mysqldumpall.sql > /dev/null
+tar czf $f $dirs $dest/pgdumpall.sql $dest/mysqldumpall.sql > /dev/null
 rm $dest/pgdumpall.sql $dest/mysqldumpall.sql
 {% else %}
-tar czf $dest/backup-icinga2.tar.gz $dirs $dest/mysqldumpall.sql > /dev/null
+tar czf $f $dirs $dest/mysqldumpall.sql > /dev/null
 rm $dest/mysqldumpall.sql
 {% endif %}
 
 ## test backup
 tar tzf $dest/backup-icinga2.tar.gz > /dev/null
+openssl dgst -sha512 $f > $f.distinfo
 
