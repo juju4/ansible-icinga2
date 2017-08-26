@@ -25,7 +25,7 @@ dirs="$dirs /etc/pnp4nagios /var/lib/pnp4nagios"
 dirs="$dirs /etc/graphite /var/lib/graphite"
 
 {% if icinga2_graphite_backend is defined and icinga2_graphite_backend == 'postgresql' %}
-sudo -u postgres pg_dumpall > $dest/pgdumpall.sql
+sudo -u postgres pg_dumpall -c > $dest/pgdumpall.sql
 {% endif %}
 
 {% else %}
