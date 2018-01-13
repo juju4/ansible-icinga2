@@ -58,7 +58,7 @@ script:
   - 'sudo docker exec --tty "$(cat ${container_id})" env TERM=xterm ansible-playbook /etc/ansible/roles/juju4.icinga2/test/integration/default/default.yml --syntax-check'
 
   # Test role.
-  - 'sudo docker exec --tty "$(cat ${container_id})" env TERM=xterm ansible-playbook /etc/ansible/roles/juju4.icinga2/test/integration/default/default.yml'
+  - 'sudo docker exec --tty "$(cat ${container_id})" env TERM=xterm ansible-playbook /etc/ansible/roles/juju4.icinga2/test/integration/default/default.yml -vv'
 
   # Test role idempotence.
 ## know fail
@@ -73,9 +73,15 @@ script:
 ## FIXME! 'The underlying system error is Errno::EROFS: Read-only file system @ dir_s_mkdir'
 #  - 'sudo docker exec --tty "$(cat ${container_id})" /etc/ansible/roles/juju4.icinga2/test/integration/default/serverspec/run-local-tests.sh'
 
+after_failure:
+  # Check what happened on systemd systems.
+  - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm systemctl -l --no-pager status icinga2'
+  - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm systemctl -l --no-pager status apache2'
+  - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm journalctl -xe --no-pager'
+
+after_script:
   # Clean up
   - 'sudo docker stop "$(cat ${container_id})"'
 
 notifications:
   webhooks: https://galaxy.ansible.com/api/v1/notifications/
-
