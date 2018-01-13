@@ -13,3 +13,5 @@ icinga2_server_deps:
     - MySQL-python
     - vixie-cron
 
+icinga2_pki_dir: /etc/icinga2/pki
+icinga2_pki_cadir: /var/lib/icinga2/ca

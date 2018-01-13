@@ -83,7 +83,6 @@ icinga2_server_ip: "{{ ansible_default_ipv4.address }}"
 ## unixweb, unixserver, clientmac, clientwin, clientlinux
 #monclientype: unixweb
 icinga2_master_port: 5665
-icinga2_pki_dir: /etc/icinga2/pki
 icinga2_if: eth0
 
 
