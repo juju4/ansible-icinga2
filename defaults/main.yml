@@ -56,9 +56,7 @@ icinga2_graphite_base_url: http://127.0.0.1:1588
 icinga2_graphite_carbon_localhostonly: true
 
 ## stable
-icinga2_nagvis_v: 1.8.5
-## testing
-#icinga2_nagvis_v: 1.9b10
+icinga2_nagvis_v: 1.9.5
 icinga2_nagvis_logonmodule: 'LogonMixed'
 #icinga2_nagvis_logonmodule: 'LogonEnv'
 #icinga2_nagvis_logonmodule: 'LogonDialog'
