@@ -53,7 +53,12 @@
     - { regexp: '^  Allow from all', replace: '#  Allow from all' }
   notify:
     - restart apache
-- lineinfile: dest="{{ apache_confdir }}/apache2-nagvis.conf" line='  Require all granted' insertafter='^#  Allow from all'
+- name: Apache 2.4 config conversion
+  lineinfile:
+    dest: "{{ apache_confdir }}/apache2-nagvis.conf"
+    line: '  Require all granted'
+    insertafter: '^#  Allow from all'
+  when: not (ansible_distribution_release == 'trusty' or (ansible_os_family == "RedHat" and ansible_distribution_major_version|int > 6))
 
 - stat: path=/usr/local/nagvis/docs
   register: docsdir
