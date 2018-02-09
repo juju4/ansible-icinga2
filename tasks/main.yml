@@ -13,9 +13,9 @@
   include_vars: "RedHat-{{ ansible_distribution_version.split('.')[0] }}.yml"
   when: ansible_os_family == "RedHat" or ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
 
-- include: server.yml
+- include_tasks: server.yml
   when: icinga2mode == 'server'
 
-- include: client.yml
+- include_tasks: client.yml
   when: icinga2mode == 'client'
 
