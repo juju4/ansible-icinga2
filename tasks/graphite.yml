@@ -146,6 +146,11 @@
 - name: map correct jquery file
   lineinfile: dest=/usr/lib/python2.7/dist-packages/graphite/templates/graphlot.html line='    <script type="text/javascript" src="../content/js/jquery.flot.time.js"></script>' insertafter='<script type="text/javascript" src="../content/js/jquery.flot.crosshair.js"></script>'
 
+# FIX graphite-web xenial doesn't include graphlot.html see: https://packages.ubuntu.com/de/xenial/all/graphite-web/filelist
+- name: copy missing template for xenial
+  copy: src=graphlot.html dest=/usr/lib/python2.7/dist-packages/graphite/templates/graphlot.html mode=0644
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_release == 'xenial'
+
 - name: ensure service carbon-cache is enabled
   service: name=carbon-cache enabled=yes
   notify:
