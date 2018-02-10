@@ -20,7 +20,8 @@
 
 ## https://github.com/sivel/speedtest-cli
 - name: check_speedtest-cli
-  get_url: url="https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest_cli.py" dest={{ np }}/check_speedtest_cli.py mode=0755
+  #get_url: url="https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest_cli.py" dest={{ np }}/check_speedtest_cli.py mode=0755
+  get_url: url="https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py" dest={{ np }}/check_speedtest_cli.py mode=0755
 
 ## https://exchange.nagios.org/directory/Plugins/Network-Connections,-Stats-and-Bandwidth/check_iperf/details
 - name: check_iperf
