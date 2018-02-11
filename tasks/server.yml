@@ -4,16 +4,16 @@
 ## http://lowendbox.com/blog/server-monitoring-with-icinga-2-part-1-the-server-ubuntu-host/
 ## http://serverfault.com/questions/730214/how-to-set-up-icinga2-master-for-remote-clients-without-using-cli-wizard
 
-- include: travis.yml
+- include_tasks: travis.yml
 
-- include: debian.yml
+- include_tasks: debian.yml
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
-- include: server-debian.yml
+- include_tasks: server-debian.yml
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
-- include: redhat.yml
+- include_tasks: redhat.yml
   when: ansible_os_family == "RedHat" or ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
-- include: server-redhat.yml
+- include_tasks: server-redhat.yml
   when: ansible_os_family == "RedHat" or ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
 
 - name: check role user exists
@@ -58,6 +58,10 @@
   when: featurelist.stdout.find("command") == -1 and icinga2_command is defined and icinga2_command
   tags:
     - configure
+- name: create icingacmd group
+  group:
+    name: icingacmd
+    state: present
 - name: add web user to icingacmd group
   user: name={{ www_user }} groups=icingacmd append=yes
   notify:

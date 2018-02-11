@@ -22,6 +22,7 @@
     - python-simplejson
     - build-essential
     - python-dev
+    - libjs-jquery-flot
 
 - name: Debian | Extra packages install for postgresql backend
   apt: name={{item}} state=present
@@ -75,7 +76,7 @@
 - name: write local settings of graphite
   lineinfile: dest=/etc/graphite/local_settings.py regexp="{{ item.regexp }}" line="{{ item.line }}" backup=yes
   with_items:
-    - { regexp: "^#SECRET_KEY = ", line: "SECRET_KEY = \\'{{ graphitesalt.stdout | default('nueebAfXLRynezMbpkCg6TkLk6NM4c084Snnjtuk6m0') }}\\'" }
+    - { regexp: "^#SECRET_KEY = ", line: "SECRET_KEY = '{{ graphitesalt.stdout | default('nueebAfXLRynezMbpkCg6TkLk6NM4c084Snnjtuk6m0') }}'" }
     - { regexp: '^TIME_ZONE = ', line: "TIME_ZONE = '{{ tz }}'" }
     - { regexp: '^USE_REMOTE_USER_AUTHENTICATION = ', line: 'USE_REMOTE_USER_AUTHENTICATION = True' }
 
@@ -144,6 +145,11 @@
   file: src=/usr/share/javascript/jquery-flot/jquery.flot.time.js dest=/usr/share/graphite-web/static/js/jquery.flot.time.js state=link
 - name: map correct jquery file
   lineinfile: dest=/usr/lib/python2.7/dist-packages/graphite/templates/graphlot.html line='    <script type="text/javascript" src="../content/js/jquery.flot.time.js"></script>' insertafter='<script type="text/javascript" src="../content/js/jquery.flot.crosshair.js"></script>'
+
+# FIX graphite-web xenial doesn't include graphlot.html see: https://packages.ubuntu.com/de/xenial/all/graphite-web/filelist
+- name: copy missing template for xenial
+  copy: src=graphlot.html dest=/usr/lib/python2.7/dist-packages/graphite/templates/graphlot.html mode=0644
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_release == 'xenial'
 
 - name: ensure service carbon-cache is enabled
   service: name=carbon-cache enabled=yes
