@@ -58,7 +58,7 @@
   when: featurelist.stdout.find("command") == -1 and icinga2_command is defined and icinga2_command
   tags:
     - configure
-- name: create icingacmd group (set: {{ icinga2cmd_group }})
+- name: "create icingacmd group (set: {{ icinga2cmd_group }})"
   group:
     name: "{{ icinga2cmd_group }}"
     state: present
