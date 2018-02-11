@@ -58,12 +58,15 @@
   when: featurelist.stdout.find("command") == -1 and icinga2_command is defined and icinga2_command
   tags:
     - configure
-- name: create icingacmd group
+- name: create icingacmd group (set: {{ icinga2cmd_group }})
   group:
-    name: icingacmd
+    name: "{{ icinga2cmd_group }}"
     state: present
 - name: add web user to icingacmd group
-  user: name={{ www_user }} groups=icingacmd append=yes
+  user:
+    name: "{{ www_user }}"
+    groups: "{{ icinga2cmd_group }}"
+    append:yes
   notify:
     - restart icinga2
   when: featurelist.stdout.find("command") == -1 and icinga2_command is defined and icinga2_command

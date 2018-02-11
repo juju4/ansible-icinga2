@@ -36,6 +36,9 @@ icinga2_api: false
 ## http://docs.icinga.org/icinga2/latest/doc/module/icinga2/chapter/getting-started#setting-up-external-command-pipe
 icinga2_command: false
 icinga2_icli: false
+# historic packages use nagios, https://lists.icinga.org/pipermail/icinga-users/2014-February/007976.html
+#icinga2cmd_group: nagios
+icinga2cmd_group: icingacmd
 
 icinga2_mysqlwebdb: icingaweb2
 icinga2_mysqlwebuser: icingaweb2
