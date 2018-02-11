@@ -5,31 +5,17 @@
 - include: redhat.yml
   when: ansible_os_family == "RedHat" or ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
 
-- file: dest="{{ np }}" state=directory mode=0755
-
-## http://dns.measurement-factory.com/tools/nagios-plugins/check_zone_rrsig_expiration.html
-- name: plugin dnssec expiration
-  get_url: "url=http://dns.measurement-factory.com/tools/nagios-plugins/src/check_zone_rrsig_expiration dest={{ np }}/check_zone_rrsig_expiration mode=0755"
-
-- name: download samweather plugin
-  get_url: url=https://raw.githubusercontent.com/tuxthepenguin84/sam-weather/master/samweather dest={{ np }}/samweather mode=0755
-
-## https://exchange.nagios.org/directory/Plugins/Email-and-Groupware/check_rbl-2Epl/details
-- name: check_rbl.pl
-  get_url: url="https://exchange.nagios.org/components/com_mtree/attachment.php?link_id=1355&cf_id=24" dest={{ np }}/check_rbl.pl mode=0755 validate_certs=False
-
-## https://github.com/sivel/speedtest-cli
-- name: check_speedtest-cli
-  #get_url: url="https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest_cli.py" dest={{ np }}/check_speedtest_cli.py mode=0755
-  get_url: url="https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py" dest={{ np }}/check_speedtest_cli.py mode=0755
-
-## https://exchange.nagios.org/directory/Plugins/Network-Connections,-Stats-and-Bandwidth/check_iperf/details
-- name: check_iperf
-  get_url: url="https://exchange.nagios.org/components/com_mtree/attachment.php?link_id=1446&cf_id=24" dest={{ np }}/check_iperf.pl mode=0755 validate_certs=False
+- name: ensure plugins directory exists
+  file: dest="{{ np }}" state=directory mode=0755
 
 - block:
     - name: download extra plugins
-      get_url: "url={{ item.u }} dest={{ np }}/{{ item.d }} mode=0755 checksum={{ item.c }}"
+      get_url:
+        url: "{{ item.u }}"
+        dest: "{{ np }}/{{ item.d }}"
+        mode: '0755'
+        checksum: "{{ item.c }}"
+        validate_certs: "{{ item.v | default(true) }}"
       with_items: "{{ icinga2_plugins_extra }}"
   when: icinga2_plugins_extra is defined and icinga2_plugins_extra != []
 
