@@ -1,0 +1,37 @@
+---
+
+icinga2_server_deps:
+    - apache2
+    - libapache2-mod-php
+    - php-gd
+    - php-imagick
+    - mysql-server
+    - git
+    - apache2-utils
+    - php-intl
+    - php-ldap
+    - php-mysql
+    - python-passlib
+    - python-mysqldb
+## required for snmpget/check_snmp
+    - snmp
+
+icinga2_phpconf: /etc/php/7.2
+
+icinga2_nagvis_debian:
+    - sqlite3
+    - graphviz
+    - libgraphviz-perl
+    - php-gd
+    - php-sqlite3
+#    - php-gettext
+#    - php-mbstring
+#    - php-session
+#    - php-pdo
+#    - php-pdo-sqlite
+
+#icinga2_pki_dir: /etc/icinga2/pki
+#icinga2_pki_cadir: /var/lib/icinga2/ca
+# v2.8+, https://github.com/Icinga/icinga2/issues/5779
+icinga2_pki_dir: /var/lib/icinga2/certs
+icinga2_pki_cadir: /var/lib/icinga2/certs

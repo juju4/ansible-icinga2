@@ -14,11 +14,11 @@ https://github.com/Icinga/icinga2-ansible
 ### Ansible
 It was tested on the following versions:
  * 1.9
+ * 2.5
 
 ### Operating systems
 
-Tested with vagrant only on Ubuntu 14.04 for now but should work on 12.04 and similar debian based systems.
-Verified with kitchen against ubuntu14
+Tested on Ubuntu 14.04, 16.04 and 18.04
 
 ## Example Playbook
 
@@ -28,7 +28,8 @@ For example
 ```
 - host: myserver
   roles:
-    - { role: icinga2, chart_module: pnp4nagios }
+    - { role: juju4.icinga2, chart_module: pnp4nagios }
+    - { role: juju4.icinga2, chart_module: graphite }
 ```
 
 [Normally this part is not needed anymore]
