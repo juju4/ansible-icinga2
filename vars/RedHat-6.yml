@@ -15,3 +15,6 @@ icinga2_server_deps:
 
 icinga2_pki_dir: /etc/icinga2/pki
 icinga2_pki_cadir: /var/lib/icinga2/ca
+
+apache_svc: httpd
+mysql_svc: mysqld

@@ -47,7 +47,11 @@
   tags:
     - configure
 - name: add bind_host for api
-  lineinfile: dest=/etc/icinga2/features-available/api.conf regexp='^  bind_host = ' line='  bind_host = "{{ icinga2_server_ip }}"' insertafter='ca_path'
+  lineinfile:
+    dest: /etc/icinga2/features-available/api.conf
+    regexp: '^  bind_host = '
+    line: '  bind_host = "{{ icinga2_server_ip | default("") }}"'
+    insertafter: 'ca_path'
   when: icinga2_api is defined and icinga2_api and icinga2_server_ip is defined and icinga2_server_ip != ''
   tags:
     - configure
@@ -200,11 +204,12 @@
 #- fail: msg=stop
 
 - name: Ensure ca.crt is replicate in pki directory
-  command: "rsync -ci /var/lib/icinga2/ca/{{ item }} {{ icinga2_pki_cadir }}/{{ item }}"
+  copy:
+    src: "/var/lib/icinga2/ca/{{ item }}"
+    dest: "{{ icinga2_pki_cadir }}/{{ item }}"
+    remote_src: true
   with_items:
     - ca.crt
-  register: rsync_result
-  changed_when: 'rsync_result.stdout != ""'
   tags:
     - configure
 
@@ -274,6 +279,19 @@
     - icinga2
     - "{{ apache_svc }}"
     - "{{ mysql_svc }}"
+  when: not (ansible_virtualization_type is defined and ansible_virtualization_type == "docker")
+
+- name: Docker | Manually start services
+  shell: "{{ item }}"
+  with_items:
+    - sudo -H -u mysql mysqld --initialize > /tmp/mysql_install_db.out 2>&1
+    - install -d -o mysql /var/run/mysqld
+    - cd /var/lib/mysql; /usr/bin/mysqld_safe --datadir='/var/lib/mysql' > /tmp/mysqld_safe.out 2>&1 &
+#    - /usr/sbin/httpd -DFOREGROUND > /tmp/httpd.out 2>&1 &
+    - apachectl start > /tmp/httpd.out 2>&1 &
+  ignore_errors: true
+  when: (ansible_virtualization_type is defined and ansible_virtualization_type == "docker")
+
 
 - include: plugins.yml
 

@@ -38,14 +38,18 @@
 
 - stat: path=/etc/apache2/conf-available/apache2-nagvis.conf
   register: nagvisapache
-- command: "rsync -ci /usr/local/nagvis/etc/apache2-nagvis.conf-sample {{ apache_confdir }}/apache2-nagvis.conf"
-  register: rsync_result
-  changed_when: 'rsync_result.stdout != ""'
+- name: Configure Nagvis in Apache
+  copy:
+    src: /usr/local/nagvis/etc/apache2-nagvis.conf-sample
+    dest: "{{ apache_confdir }}/apache2-nagvis.conf"
+    remote_src: true
+    mode: '0644'
   when: not nagvisapache.stat.exists
-- file: dest="{{ apache_confdir }}/apache2-nagvis.conf" mode=0644
-- file: src="{{ apache_confdir }}/apache2-nagvis.conf" dest=/etc/apache2/conf-enabled/apache2-nagvis.conf state=link
+- name: Debian | enable nagvis for apache
+  file: src="{{ apache_confdir }}/apache2-nagvis.conf" dest=/etc/apache2/conf-enabled/apache2-nagvis.conf state=link
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
-- replace: dest="{{ apache_confdir }}/apache2-nagvis.conf" regexp="{{ item.regexp }}" replace="{{ item.replace }}"
+- name: Review Nagvis configuration
+  replace: dest="{{ apache_confdir }}/apache2-nagvis.conf" regexp="{{ item.regexp }}" replace="{{ item.replace }}"
   with_items:
     - { regexp: '@NAGVIS_WEB@', replace: '/nagvis' }
     - { regexp: '@NAGVIS_PATH@', replace: '/usr/local/nagvis/share' }

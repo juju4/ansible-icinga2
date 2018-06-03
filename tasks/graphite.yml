@@ -94,12 +94,17 @@
 
 - stat: path=/etc/apache2/sites-available/apache2-graphite.conf
   register: apache2graphite
-- command: "rsync -ci /usr/share/graphite-web/apache2-graphite.conf /etc/apache2/sites-available/"
-  register: rsync_result
-  changed_when: 'rsync_result.stdout != ""'
+- name: Configure graphite in Apache
+  copy:
+    src: /usr/share/graphite-web/apache2-graphite.conf
+    dest: /etc/apache2/sites-available/
+    remote_src: true
+    mode: '0644'
   when: not apache2graphite.stat.exists
+
 ## separate instance to avoid conflict w icingaweb2
-- replace: dest=/etc/apache2/sites-available/apache2-graphite.conf regexp='<VirtualHost \*\:80>' replace='<VirtualHost *:8888>' backup=yes
+- name: Customize listening port of Graphite
+  replace: dest=/etc/apache2/sites-available/apache2-graphite.conf regexp='<VirtualHost \*\:80>' replace='<VirtualHost *:8888>' backup=yes
   notify:
     - restart apache
 - lineinfile: dest=/etc/apache2/sites-available/apache2-graphite.conf regexp="{{ item.regexp }}" line="{{ item.line }}"
