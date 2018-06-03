@@ -46,6 +46,11 @@
   when: featurelist.stdout.find("api") == -1 and icinga2_api is defined and icinga2_api
   tags:
     - configure
+
+- name: re-gather facts
+  action: setup
+  when: not (ansible_default_ipv4 is defined)
+
 - name: add bind_host for api
   lineinfile:
     dest: /etc/icinga2/features-available/api.conf
