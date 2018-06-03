@@ -50,9 +50,9 @@
   lineinfile:
     dest: /etc/icinga2/features-available/api.conf
     regexp: '^  bind_host = '
-    line: '  bind_host = "{{ icinga2_server_ip | default("") }}"'
+    line: '  bind_host = "{{ icinga2_server_ip | default(ansible_default_ipv4.address) }}"'
     insertafter: 'ca_path'
-  when: icinga2_api is defined and icinga2_api and icinga2_server_ip is defined and icinga2_server_ip != ''
+  when: icinga2_api is defined and icinga2_api
   tags:
     - configure
 - name: Enable command feature in Icinga2

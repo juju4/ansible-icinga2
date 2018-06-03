@@ -79,8 +79,8 @@ icinga2_nagvis_enable_jslog: true
 
 #icinga2mode: client
 icinga2_server: monserver
+#icinga2_server_ip: ''
 #icinga2_server_ip: 192.168.0.100
-icinga2_server_ip: "{{ ansible_default_ipv4.address | default('') }}"
 ## unixweb, unixserver, clientmac, clientwin, clientlinux
 #monclientype: unixweb
 icinga2_master_port: 5665
