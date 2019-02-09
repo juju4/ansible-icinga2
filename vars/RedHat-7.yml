@@ -20,5 +20,4 @@ apache_svc: httpd
 mysql_svc: mariadb
 
 np: /usr/lib64/nagios/plugins
-mysql_svc: mariadb
 icinga2_mysqlrootpw: ""

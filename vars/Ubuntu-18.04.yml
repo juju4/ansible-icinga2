@@ -42,4 +42,3 @@ apache_svc: apache2
 mysql_svc: mysql
 
 np: /usr/lib/nagios/plugins
-mysql_svc: mysql

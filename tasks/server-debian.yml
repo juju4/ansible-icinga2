@@ -12,19 +12,46 @@
 
 ## FIXME! all debconf except one are changed at each execution, how to make idempotent?
 - name: Debian | server | set debconf configuration
-  debconf: "name={{ item.name }} question={{ item.question }} value={{ item.value }} vtype={{ item.vtype }}"
+  debconf:
+    name: "{{ item.name }}"
+    question: "{{ item.question }}"
+    value: "{{ item.value }}"
+    vtype: "{{ item.vtype }}"
   with_items:
-    - { name: 'mysql-server-5.5', question: 'mysql-server/root_password', value: "{{ icinga2_mysqlrootpw }}", vtype: 'password' }
-    - { name: 'mysql-server-5.5', question: 'mysql-server/root_password_again', value: "{{ icinga2_mysqlrootpw }}", vtype: 'password' }
-    - { name: 'icinga2-ido-mysql', question: 'icinga2-ido-mysql/mysql/admin-pass', value: "{{ icinga2_mysqlrootpw }}", vtype: 'password' }
+    - { name: 'mysql-server-5.5',
+        question: 'mysql-server/root_password',
+        value: "{{ icinga2_mysqlrootpw }}",
+        vtype: 'password'
+      }
+    - { name: 'mysql-server-5.5',
+        question: 'mysql-server/root_password_again',
+        value: "{{ icinga2_mysqlrootpw }}",
+        vtype: 'password'
+      }
+    - { name: 'icinga2-ido-mysql',
+        question: 'icinga2-ido-mysql/mysql/admin-pass',
+        value: "{{ icinga2_mysqlrootpw }}",
+        vtype: 'password'
+      }
 ### FIXME! default user is still 'icinga2-ido-mysq' and db icinga2idomysql, pass does not seem to be updated
-    - { name: 'icinga2-ido-mysql', question: 'icinga2-ido-mysql/db/dbname', value: "{{ icinga2_mysqlidodb }}", vtype: 'string' }
-    - { name: 'icinga2-ido-mysql', question: 'icinga2-ido-mysql/mysql/app-pass', value: "{{ icinga2_mysqlidopass }}", vtype: 'password' }
-    - { name: 'icinga2-ido-mysql', question: 'icinga2-ido-mysql/mysql/app-password-confirm', value: "{{ icinga2_mysqlidopass }}", vtype: 'password' }
+    - { name: 'icinga2-ido-mysql',
+        question: 'icinga2-ido-mysql/db/dbname',
+        value: "{{ icinga2_mysqlidodb }}",
+        vtype: 'string'
+      }
+    - { name: 'icinga2-ido-mysql',
+        question: 'icinga2-ido-mysql/mysql/app-pass',
+        value: "{{ icinga2_mysqlidopass }}",
+        vtype: 'password'
+      }
+    - { name: 'icinga2-ido-mysql',
+        question: 'icinga2-ido-mysql/mysql/app-password-confirm',
+        value: "{{ icinga2_mysqlidopass }}",
+        vtype: 'password'
+      }
 
 - name: Debian | Server dependencies install
-  apt: name={{ item }} state=present update_cache=yes
-  with_items: "{{ icinga2_server_deps }}"
+  apt: name={{ icinga2_server_deps }} state=present update_cache=yes
   register: pkg_result
   until: pkg_result is success
 - name: Debian | Extra packages install
@@ -39,7 +66,9 @@
   until: pkg_result is success
 
 - name: Ubuntu i386/x86_64 | add icinga packages repository
-  apt_repository: repo='deb http://packages.icinga.org/ubuntu icinga-{{ ansible_distribution_release }} main' state=present
+  apt_repository:
+    repo: 'deb http://packages.icinga.org/ubuntu icinga-{{ ansible_distribution_release | lower }} main'
+    state: present
   when: ansible_distribution == 'Ubuntu' and (ansible_architecture == 'i386' or ansible_architecture == 'x86_64')
 
 - name: Debian | Extra packages install

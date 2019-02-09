@@ -153,16 +153,22 @@
   git:
     repo: https://github.com/findmypast/icingaweb2-module-graphite.git
     dest: /usr/share/icingaweb2/modules/graphite
-    version: "{{ icinga2_graphite_version | default('dcec465b629629955d055decf82fb29200484c9e') }}
+    version: "{{ icinga2_graphite_version | default('dcec465b629629955d055decf82fb29200484c9e') }}"
   when: not icingaweb2graphitedir.stat.exists
 
 ## virtualhost is 8888 but accessing through vagrant forward on 1588
 - template: src=config.ini dest=/etc/icingaweb2/modules/graphite/config.ini mode=0644
-- replace: dest={{ item }} regexp='http://graphite.com' replace='{{ icinga2_graphite_base_url }}'
+- replace:
+    dest: "{{ item }}"
+    regexp: 'http://graphite.com'
+    replace: "{{ icinga2_graphite_base_url }}"
   with_items:
     - /usr/share/icingaweb2/modules/graphite/application/views/scripts/config/index.phtml
     - /usr/share/icingaweb2/modules/graphite/library/Graphite/Grapher.php
-- replace: dest={{ item }} regexp="protected \$legacyMode = 'false';" replace="protected $legacyMode = 'true';"
+- replace:
+    dest: "{{ item }}"
+    regexp: "protected $legacyMode = 'false';"
+    replace: "protected $legacyMode = 'true';"
   with_items:
     - /usr/share/icingaweb2/modules/graphite/library/Graphite/Grapher.php
 
@@ -186,7 +192,8 @@
     line: '    <script type="text/javascript" src="../content/js/jquery.flot.time.js"></script>'
     insertafter: '<script type="text/javascript" src="../content/js/jquery.flot.crosshair.js"></script>'
 
-# FIX graphite-web xenial doesn't include graphlot.html see: https://packages.ubuntu.com/de/xenial/all/graphite-web/filelist
+# FIX graphite-web xenial doesn't include graphlot.html
+#   see: https://packages.ubuntu.com/de/xenial/all/graphite-web/filelist
 - name: copy missing template for xenial
   copy: src=graphlot.html dest=/usr/lib/python2.7/dist-packages/graphite/templates/graphlot.html mode=0644
   when: ansible_distribution == 'Ubuntu' and ansible_distribution_release == 'xenial'

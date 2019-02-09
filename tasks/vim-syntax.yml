@@ -27,16 +27,3 @@
     - /root/.vim/syntax
     - /root/.vim/ftdetect
   when: icinga2_user == 'root'
-
-## FIXME! disappear on 20160226 but on http://packages.ubuntu.com/wily/all/icinga2-common/filelist + jessie
-#- name: replicate icinga2 vim syntax file (1) - root
-#  command: "rsync -ci {{ icinga2_vimsyntax }}/vim/syntax/icinga2.vim /root/.vim/syntax/"
-#  register: rsync_result
-#  changed_when: 'rsync_result.stdout != ""'
-#  when: icinga2_user == 'root'
-#
-#- name: replicate icinga2 vim syntax file (2) - root
-#  command: "rsync -ci {{ icinga2_vimsyntax }}/vim/ftdetect/icinga2.vim /root/.vim/ftdetect/"
-#  register: rsync_result
-#  changed_when: 'rsync_result.stdout != ""'
-#  when: icinga2_user == 'root'

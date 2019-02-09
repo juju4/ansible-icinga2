@@ -85,7 +85,8 @@
   user: name=www-data groups=nagios append=yes
 
 # Note: can't validate pnp4nagios setup as verify script doesn't support icinga2
-# /usr/lib/pnp4nagios/libexec/verify_pnp_config_v2.pl --mode=bulk+npcd --config=/etc/icinga2/icinga2.conf --pnpcfg=/etc/pnp4nagios
+# /usr/lib/pnp4nagios/libexec/verify_pnp_config_v2.pl --mode=bulk+npcd
+#       --config=/etc/icinga2/icinga2.conf --pnpcfg=/etc/pnp4nagios
 # echo STATS | sudo -u nagios socat - /var/run/rrdcached.sock
 
 - stat: path=/usr/share/icingaweb2/modules/pnp4nagios
