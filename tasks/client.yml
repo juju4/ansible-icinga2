@@ -6,11 +6,13 @@
 - name: Ubuntu i386/x86_64 | add icinga packages repository key
   apt_key: url=http://packages.icinga.org/icinga.key state=present
   when: ansible_distribution == 'Ubuntu' and (ansible_architecture == 'i386' or ansible_architecture == 'x86_64')
+  register: pkg_result
+  until: pkg_result is success
 - name: Debian | Extra packages install
-  apt: name={{item}} state=present update_cache=yes
-  with_items:
-    - icinga2
+  apt: name=icinga2 state=present update_cache=yes
   when: ansible_distribution == 'Ubuntu' and (ansible_architecture == 'i386' or ansible_architecture == 'x86_64')
+  register: pkg_result
+  until: pkg_result is success
 
 - include: client-nrpe.yml
 

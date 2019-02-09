@@ -4,9 +4,15 @@
 ## https://github.com/Icinga/icinga2/blob/master/lib/cli/nodewizardcommand.cpp
 
 - name: icinga2 client node | adding server to client /etc/hosts
-  lineinfile: dest=/etc/hosts regexp="{{ icinga2_server_ip }}   {{ icinga2_server }}" line="{{ icinga2_server_ip }}   {{ icinga2_server }}"
+  lineinfile:
+    dest: /etc/hosts
+    regexp: "{{ icinga2_server_ip }}   {{ icinga2_server }}"
+    line: "{{ icinga2_server_ip }}   {{ icinga2_server }}"
 - name: adding client to server /etc/hosts
-  lineinfile: dest=/etc/hosts regexp="{{ ipaddr.stdout }}   {{ ansible_fqdn }}" line="{{ ipaddr.stdout }}   {{ ansible_fqdn }}"
+  lineinfile:
+    dest: /etc/hosts
+    regexp: "{{ ipaddr.stdout }}   {{ ansible_fqdn }}"
+    line: "{{ ipaddr.stdout }}   {{ ansible_fqdn }}"
   delegate_to: "{{ icinga2_server }}"
 
 
@@ -37,7 +43,11 @@
 #- debug: var=pki_dir
 
 - name: icinga2 client node | accept remote commands
-  lineinfile: dest=/etc/icinga2/features-available/api.conf regexp="^  accept_commands =" line="  accept_commands = true" insertafter="ticket_salt = "
+  lineinfile:
+    dest: /etc/icinga2/features-available/api.conf
+    regexp: "^  accept_commands ="
+    line: "  accept_commands = true"
+    insertafter: "ticket_salt = "
   notify:
     - restart icinga2
 
@@ -76,7 +86,6 @@
   notify:
     - restart icinga2
 
-
 - name: icinga2 client node | check node is referenced on server
   command: icinga2 node list
   delegate_to: "{{ icinga2_server }}"
@@ -84,4 +93,3 @@
 
 #- fail: msg="Error! new node {{ ansible_fqdn }} not listed on server {{ icinga2_server }}... something bad happened."
 #  when: nodelist.stdout.find({{ ansible_fqdn }}) == -1
-

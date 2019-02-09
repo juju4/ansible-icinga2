@@ -4,14 +4,18 @@
 ## https://github.com/divetoh/icingaweb2-module-nagvis
 
 - name: apt | nagvis dependencies install
-  apt: name={{item}} state=present
-  with_items: "{{ icinga2_nagvis_debian }}"
+  apt: name={{ icinga2_nagvis_debian }} state=present
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+  register: pkg_result
+  until: pkg_result is success
 
 - stat: path=/root/nagvis-{{ icinga2_nagvis_v }}.tar.gz
   register: narchive
 - name: download nagvis
-  get_url: url=http://www.nagvis.org/share/nagvis-{{ icinga2_nagvis_v }}.tar.gz dest=/root/nagvis-{{ icinga2_nagvis_v }}.tar.gz mode=0644
+  get_url:
+    url: "http://www.nagvis.org/share/nagvis-{{ icinga2_nagvis_v }}.tar.gz"
+    dest: "/root/nagvis-{{ icinga2_nagvis_v }}.tar.gz"
+    mode: '0644'
   when: not narchive.stat.exists
 
 - stat: path=/usr/local/nagvis-{{ icinga2_nagvis_v }}/install.sh
@@ -49,7 +53,10 @@
   file: src="{{ apache_confdir }}/apache2-nagvis.conf" dest=/etc/apache2/conf-enabled/apache2-nagvis.conf state=link
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 - name: Review Nagvis configuration
-  replace: dest="{{ apache_confdir }}/apache2-nagvis.conf" regexp="{{ item.regexp }}" replace="{{ item.replace }}"
+  replace:
+    dest: "{{ apache_confdir }}/apache2-nagvis.conf"
+    regexp: "{{ item.regexp }}"
+    replace: "{{ item.replace }}"
   with_items:
     - { regexp: '@NAGVIS_WEB@', replace: '/nagvis' }
     - { regexp: '@NAGVIS_PATH@', replace: '/usr/local/nagvis/share' }
@@ -125,7 +132,12 @@
 - name: Create nagvis modules directory for icingaweb2
   file: dest=/etc/icingaweb2/modules/nagvis state=directory mode=0755
 - name: set icingaweb2 nagvis config
-  template: "src={{ item.s }} dest={{ item.d }} mode=0660 owner={{ www_user }} group={{ www_user }} backup=yes"
+  template:
+    src: "{{ item.s }}"
+    dest: "{{ item.d }}"
+    mode: '0660'
+    owner: "{{ www_user }}"
+    group: "{{ www_user }}"
+    backup: yes
   with_items:
     - { s: 'icingaweb2-nagvis.ini.j2', d: '/etc/icingaweb2/modules/nagvis/config.ini' }
-

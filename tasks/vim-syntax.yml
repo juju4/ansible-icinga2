@@ -40,4 +40,3 @@
 #  register: rsync_result
 #  changed_when: 'rsync_result.stdout != ""'
 #  when: icinga2_user == 'root'
-

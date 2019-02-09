@@ -23,37 +23,45 @@
     - { name: 'icinga2-ido-mysql', question: 'icinga2-ido-mysql/mysql/app-password-confirm', value: "{{ icinga2_mysqlidopass }}", vtype: 'password' }
 
 - name: Debian | Server dependencies install
-  apt: name={{item}} state=present update_cache=yes
+  apt: name={{ item }} state=present update_cache=yes
   with_items: "{{ icinga2_server_deps }}"
+  register: pkg_result
+  until: pkg_result is success
 - name: Debian | Extra packages install
-  apt: name={{item}} state=present install_recommends=no
-  with_items:
-    - nagios-nrpe-plugin
+  apt: name=nagios-nrpe-plugin state=present install_recommends=no
+  register: pkg_result
+  until: pkg_result is success
 
 - name: Ubuntu i386/x86_64 | add icinga packages repository key
   apt_key: url=http://packages.icinga.org/icinga.key state=present
   when: ansible_distribution == 'Ubuntu' and (ansible_architecture == 'i386' or ansible_architecture == 'x86_64')
+  register: pkg_result
+  until: pkg_result is success
 
 - name: Ubuntu i386/x86_64 | add icinga packages repository
   apt_repository: repo='deb http://packages.icinga.org/ubuntu icinga-{{ ansible_distribution_release }} main' state=present
   when: ansible_distribution == 'Ubuntu' and (ansible_architecture == 'i386' or ansible_architecture == 'x86_64')
 
 - name: Debian | Extra packages install
-  apt: name={{item}} state=present update_cache=yes
+  apt: name={{ item }} state=present update_cache=yes
   with_items:
     - icinga2
     - icinga2-ido-mysql
     - git
     - icingaweb2
   when: ansible_distribution == 'Ubuntu' and (ansible_architecture == 'i386' or ansible_architecture == 'x86_64')
+  register: pkg_result
+  until: pkg_result is success
 
 - name: Debian 386/x86_64 | Extra packages install
-  apt: name={{item}} state=present update_cache=yes
+  apt: name={{ item }} state=present update_cache=yes
   with_items:
     - icinga2
     - icinga2-classicui
     - icingaweb2
   when: ansible_distribution == 'Debian' and (ansible_architecture == 'i386' or ansible_architecture == 'x86_64')
+  register: pkg_result
+  until: pkg_result is success
 
 - name: Raspbian | add icinga packages repository
   apt_repository: repo='deb http://packages.icinga.org/raspbian icinga-wheezy main' state=present
@@ -62,17 +70,23 @@
   apt_key: url=http://packages.icinga.org/icinga.key state=present
   when: ansible_distribution == 'Debian' and (ansible_architecture == 'armhf' or ansible_architecture == 'armv7l')
 - name: Raspbian | Extra packages install
-  apt: name={{item}} state=present update_cache=yes force=yes
+  apt: name={{ item }} state=present update_cache=yes force=yes
   with_items:
     - icinga2
     - icinga2-ido-mysql
   when: ansible_distribution == 'Debian' and (ansible_architecture == 'armhf' or ansible_architecture == 'armv7l')
+  register: pkg_result
+  until: pkg_result is success
 
 - apache2_module: name=rewrite state=present
 
 - stat: path=/etc/apache2/sites-available/000-default.conf
   register: apachedefault
-- replace: dest=/etc/apache2/sites-available/000-default.conf regexp='#ServerName www.example.com' replace="ServerName {{ ansible_fqdn }}" backup=yes
+- replace:
+    dest: /etc/apache2/sites-available/000-default.conf
+    regexp: '#ServerName www.example.com'
+    replace: "ServerName {{ ansible_fqdn }}"
+    backup: yes
   when: apachedefault.stat.exists
 - name: a2enconf icingaweb2
   file: src=/etc/apache2/conf-available/icingaweb2.conf dest=/etc/apache2/conf-enabled/icingaweb2.conf state=link
@@ -104,4 +118,3 @@
   with_items:
     - icinga2
     - apache2
-

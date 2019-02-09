@@ -3,10 +3,13 @@
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
 - include: redhat.yml
-  when: ansible_os_family == "RedHat" or ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+  when: ansible_os_family == "RedHat"
 
 - name: ensure plugins directory exists
-  file: dest="{{ np }}" state=directory mode=0755
+  file:
+    dest: "{{ np }}"
+    state: directory
+    mode: '0755'
 
 - block:
     - name: download extra plugins
@@ -64,4 +67,3 @@
 
     marker: "# {mark} ANSIBLE MANAGED BLOCK - uptime service"
     backup: yes
-

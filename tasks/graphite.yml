@@ -4,7 +4,7 @@
 ## https://www.digitalocean.com/community/tutorials/how-to-install-and-use-graphite-on-an-ubuntu-14-04-server
 
 - name: Debian | Extra packages install
-  apt: name={{item}} state=present
+  apt: name={{ item }} state=present
   with_items:
     - graphite-carbon
 ## web interface
@@ -23,14 +23,18 @@
     - build-essential
     - python-dev
     - libjs-jquery-flot
+  register: pkg_result
+  until: pkg_result is success
 
 - name: Debian | Extra packages install for postgresql backend
-  apt: name={{item}} state=present
+  apt: name={{ item }} state=present
   with_items:
     - postgresql
     - libpq-dev
     - python-psycopg2
   when: graphite_backend is defined and graphite_backend == 'postgresql'
+  register: pkg_result
+  until: pkg_result is success
 
 ## if not taking debian package
 #- pip: name=graphite-web
@@ -74,18 +78,30 @@
   changed_when: False
   register: graphitesalt
 - name: write local settings of graphite
-  lineinfile: dest=/etc/graphite/local_settings.py regexp="{{ item.regexp }}" line="{{ item.line }}" backup=yes
+  lineinfile:
+    dest: /etc/graphite/local_settings.py
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    backup: yes
   with_items:
-    - { regexp: "^#SECRET_KEY = ", line: "SECRET_KEY = '{{ graphitesalt.stdout | default('nueebAfXLRynezMbpkCg6TkLk6NM4c084Snnjtuk6m0') }}'" }
-    - { regexp: '^TIME_ZONE = ', line: "TIME_ZONE = '{{ tz }}'" }
-    - { regexp: '^USE_REMOTE_USER_AUTHENTICATION = ', line: 'USE_REMOTE_USER_AUTHENTICATION = True' }
+    - { regexp: "^#SECRET_KEY = ",
+        line: "SECRET_KEY = '{{ graphitesalt.stdout | default('nueebAfXLRynezMbpkCg6TkLk6NM4c084Snnjtuk6m0') }}'"
+      }
+    - { regexp: '^TIME_ZONE = ',
+        line: "TIME_ZONE = '{{ tz }}'"
+      }
+    - { regexp: '^USE_REMOTE_USER_AUTHENTICATION = ',
+        line: 'USE_REMOTE_USER_AUTHENTICATION = True'
+      }
 
 - name: write local settings of graphite - if postgresql
   replace: dest=/etc/graphite/local_settings.py regexp="{{ item.regexp }}" replace="{{ item.replace }}"
   with_items:
 #    - { regexp: "^#SECRET_KEY = \'UNSAFE_DEFAULT\'", line: "SECRET_KEY = \'{{ graphitesalt.stdout }}\'" }
     - { regexp: "'NAME': '/var/lib/graphite/graphite.db'", replace: "'NAME': 'graphite'" }
-    - { regexp: "'ENGINE': 'django.db.backends.sqlite3'", replace: "'ENGINE': 'django.db.backends.postgresql_psycopg2'" }
+    - { regexp: "'ENGINE': 'django.db.backends.sqlite3'",
+        replace: "'ENGINE': 'django.db.backends.postgresql_psycopg2'"
+      }
 #    - { regexp: "'USER': ''", replace: "'USER': 'graphite'" }
     - { regexp: "'PASSWORD': ''", replace: "'PASSWORD': 'graphite_password_to_change'" }
     - { regexp: "'HOST': ''", replace: "'HOST': '127.0.0.1'" }
@@ -104,16 +120,28 @@
 
 ## separate instance to avoid conflict w icingaweb2
 - name: Customize listening port of Graphite
-  replace: dest=/etc/apache2/sites-available/apache2-graphite.conf regexp='<VirtualHost \*\:80>' replace='<VirtualHost *:8888>' backup=yes
+  replace:
+    dest: /etc/apache2/sites-available/apache2-graphite.conf
+    regexp: '<VirtualHost \*\:80>'
+    replace: '<VirtualHost *:8888>'
+    backup: yes
   notify:
     - restart apache
-- lineinfile: dest=/etc/apache2/sites-available/apache2-graphite.conf regexp="{{ item.regexp }}" line="{{ item.line }}"
+- name: Update Graphite port in apache
+  lineinfile:
+    dest: /etc/apache2/sites-available/apache2-graphite.conf
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
   with_items:
     - { regexp: '^Listen ', line: 'Listen 8888' }
 #    - { regexp: '^NameVirtualHost ', line: 'NameVirtualHost *:8888' }
   notify:
     - restart apache
-- file: src=/etc/apache2/sites-available/apache2-graphite.conf dest=/etc/apache2/sites-enabled/apache2-graphite.conf state=link
+- name: Enable apache graphite configuration
+  file:
+    src: /etc/apache2/sites-available/apache2-graphite.conf
+    dest: /etc/apache2/sites-enabled/apache2-graphite.conf
+    state: link
   notify:
     - restart apache
 
@@ -123,8 +151,9 @@
   register: icingaweb2graphitedir
 - name: Add graphite integration to icingaweb2
   git:
-    repo=https://github.com/findmypast/icingaweb2-module-graphite.git
-    dest=/usr/share/icingaweb2/modules/graphite
+    repo: https://github.com/findmypast/icingaweb2-module-graphite.git
+    dest: /usr/share/icingaweb2/modules/graphite
+    version: "{{ icinga2_graphite_version | default('dcec465b629629955d055decf82fb29200484c9e') }}
   when: not icingaweb2graphitedir.stat.exists
 
 ## virtualhost is 8888 but accessing through vagrant forward on 1588
@@ -147,9 +176,15 @@
 
 ## https://github.com/graphite-project/graphite-web/issues/789
 - name: ensure jquery symlink is present
-  file: src=/usr/share/javascript/jquery-flot/jquery.flot.time.js dest=/usr/share/graphite-web/static/js/jquery.flot.time.js state=link
+  file:
+    src: /usr/share/javascript/jquery-flot/jquery.flot.time.js
+    dest: /usr/share/graphite-web/static/js/jquery.flot.time.js
+    state: link
 - name: map correct jquery file
-  lineinfile: dest=/usr/lib/python2.7/dist-packages/graphite/templates/graphlot.html line='    <script type="text/javascript" src="../content/js/jquery.flot.time.js"></script>' insertafter='<script type="text/javascript" src="../content/js/jquery.flot.crosshair.js"></script>'
+  lineinfile:
+    dest: /usr/lib/python2.7/dist-packages/graphite/templates/graphlot.html
+    line: '    <script type="text/javascript" src="../content/js/jquery.flot.time.js"></script>'
+    insertafter: '<script type="text/javascript" src="../content/js/jquery.flot.crosshair.js"></script>'
 
 # FIX graphite-web xenial doesn't include graphlot.html see: https://packages.ubuntu.com/de/xenial/all/graphite-web/filelist
 - name: copy missing template for xenial
@@ -160,4 +195,3 @@
   service: name=carbon-cache enabled=yes
   notify:
     - restart carbon-cache
-

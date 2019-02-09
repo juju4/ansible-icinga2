@@ -1,6 +1,6 @@
 ---
 - name: Debian | Extra packages install
-  apt: name={{item}} state=present update_cache=yes install_recommends=no
+  apt: name={{ item }} state=present update_cache=yes install_recommends=no
   with_items:
     - snmpd
     - nagios-plugins
@@ -14,18 +14,22 @@
     - lm-sensors
     - libhtml-strip-perl
     - acl
+  register: pkg_result
+  until: pkg_result is success
 
 - name: Debian | Extra packages install
-  apt: name={{item}} state=present
-  with_items:
-    - openntpd
+  apt: name=openntpd state=present
   when: monitor_ntp
+  register: pkg_result
+  until: pkg_result is success
 
 #- user: name=nagios groups=ossec append=yes
 
 - name: Review ntpd configuration
   replace:
-    dest='/etc/openntpd/ntpd.conf' regexp="{{ item.regexp }}" replace='{{ item.replace }}'
+    dest: '/etc/openntpd/ntpd.conf'
+    regexp: "{{ item.regexp }}"
+    replace: '{{ item.replace }}'
   with_items:
     - { regexp: '^#listen on 127.0.0.1', replace: 'listen on 127.0.0.1' }
   notify:
@@ -37,10 +41,11 @@
     - restart nrpe
 - name: Review nrpe configuration
   replace:
-    dest='/etc/nagios/nrpe.cfg' regexp='{{ item.regexp }}' replace='{{ item.replace }}' backup=yes
+    dest: '/etc/nagios/nrpe.cfg'
+    regexp: '{{ item.regexp }}'
+    replace: '{{ item.replace }}'
+    backup: yes
   with_items:
     - { regexp: '^allowed_hosts=127.0.0.1.*$', replace: 'allowed_hosts=127.0.0.1,{{ MONSERVER }}' }
   notify:
     - restart nrpe
-
-

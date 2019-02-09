@@ -12,9 +12,9 @@
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
 - include_tasks: redhat.yml
-  when: ansible_os_family == "RedHat" or ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+  when: ansible_os_family == "RedHat"
 - include_tasks: server-redhat.yml
-  when: ansible_os_family == "RedHat" or ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+  when: ansible_os_family == "RedHat"
 
 - name: check role user exists
   user: "name={{ icinga2_user }} home={{ icinga2_rootdir }}"
@@ -243,7 +243,7 @@
 - name: configure backup script 2/m with cron - redhat
   cron: name="icinga2 backup" minute=0 hour=23 day="2,16"
     user=root job="{{ scriptsdir }}/backup-icinga2.sh"
-  when: ansible_os_family == "RedHat" or ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+  when: ansible_os_family == "RedHat"
 
 ### restore existing backup ?
 ### failed: [158.69.212.202 -> 127.0.0.1] => {"failed": true, "parsed": false}
@@ -303,11 +303,25 @@
 ## Web wizard tasks, https://github.com/Icinga/icingaweb2/blob/master/doc/installation.md
 
 - name: create icingaweb2 mysql user
-  mysql_user: "name={{ icinga2_mysqlwebuser }} password={{ icinga2_mysqlwebpass }} priv='{{ icinga2_mysqlwebdb }}.*:SELECT,INSERT,UPDATE,DELETE,DROP,CREATE VIEW,INDEX,EXECUTE' state=present login_user=root login_password={{ icinga2_mysqlrootpw }}"
+  mysql_user:
+    name: "{{ icinga2_mysqlwebuser }}"
+    password: "{{ icinga2_mysqlwebpass }}"
+    priv: "{{ icinga2_mysqlwebdb }}.*:SELECT,INSERT,UPDATE,DELETE,DROP,CREATE VIEW,INDEX,EXECUTE"
+    state: present
+    login_user: root
+    login_password: "{{ icinga2_mysqlrootpw }}"
 - name: create icingaweb2 mysql db
-  mysql_db: name="{{ icinga2_mysqlwebdb }}" login_user=root login_password="{{ icinga2_mysqlrootpw }}"
+  mysql_db:
+    name: "{{ icinga2_mysqlwebdb }}"
+    login_user: root
+    login_password: "{{ icinga2_mysqlrootpw }}"
 - name: import template in icingaweb2 mysql db
-  mysql_db: name="{{ icinga2_mysqlwebdb }}" state=import target=/usr/share/icingaweb2/etc/schema/mysql.schema.sql login_user=root login_password="{{ icinga2_mysqlrootpw }}"
+  mysql_db:
+    name: "{{ icinga2_mysqlwebdb }}"
+    state: import
+    target: /usr/share/icingaweb2/etc/schema/mysql.schema.sql
+    login_user: root
+    login_password: "{{ icinga2_mysqlrootpw }}"
   ignore_errors: true
 - name: set icingaweb2 config
   template: "src={{ item.s }} dest={{ item.d }} mode=0664 owner={{ www_user }} group={{ www_user }} backup=yes"
@@ -325,7 +339,9 @@
 
 ## FIXME! no pnp4nagios in xenial, http://packages.ubuntu.com/search?suite=xenial&keywords=pnp4nagios
 - include: pnp4nagios.yml
-  when: icinga2_chart_module is defined and icinga2_chart_module == 'pnp4nagios' and (ansible_distribution != 'Ubuntu' or ansible_lsb.major_release|int < 16)
+  when: >
+    icinga2_chart_module is defined and icinga2_chart_module == 'pnp4nagios' and
+    (ansible_distribution != 'Ubuntu' or ansible_lsb.major_release|int < 16)
   tags:
     - pnp4nagios
 
@@ -342,7 +358,9 @@
   file: src=/usr/share/icingaweb2/modules/nagvis dest=/etc/icingaweb2/enabledModules/nagvis state=link
 - name: adding pnp4nagios module to icingaweb2
   file: src=/usr/share/icingaweb2/modules/pnp4nagios dest=/etc/icingaweb2/enabledModules/pnp4nagios state=link
-  when: chart_module is defined and chart_module == 'pnp4nagios' and (ansible_distribution != 'Ubuntu' or ansible_lsb.major_release|int < 16)
+  when: >
+    chart_module is defined and chart_module == 'pnp4nagios' and
+    (ansible_distribution != 'Ubuntu' or ansible_lsb.major_release|int < 16)
   tags:
     - pnp4nagios
 #  when: chart_module is defined and chart_module == 'graphite'
@@ -356,4 +374,3 @@
     - name: add additional aide HIDS configuration
       copy: src=99_aide_local_icinga2 dest=/etc/aide/aide.conf.d/99_aide_local_icinga2 mode=0644
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
-

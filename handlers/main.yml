@@ -1,10 +1,13 @@
 ---
+
 - name: restart apache
   service: name="{{ apache_svc }}" state=restarted
+
 - name: restart icinga2
   service: name=icinga2 state=restarted
+
 - name: restart npcd
   service: name=npcd state=restarted
+
 - name: restart carbon-cache
   service: name=carbon-cache state=restarted
-

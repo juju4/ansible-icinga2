@@ -86,14 +86,30 @@ icinga2_server: monserver
 icinga2_master_port: 5665
 icinga2_if: eth0
 
-
 icinga2_plugins_extra:
 ## http://dns.measurement-factory.com/tools/nagios-plugins/check_zone_rrsig_expiration.html
-    - { u: 'http://dns.measurement-factory.com/tools/nagios-plugins/src/check_zone_rrsig_expiration', d: 'check_zone_rrsig_expiration', c: 'sha256:a495d66f9bc4756426789360bb4b6e9602bb12b218a51d1dc58bb716aa770942' }
-    - { u: 'https://raw.githubusercontent.com/tuxthepenguin84/sam-weather/master/samweather', d: samweather, c: 'sha256:4c76132cd45a0222ff318e93e7d04487e87aa3f58b9b144a8a2a0ef1c0fd4e94' }
+    - { u: 'http://dns.measurement-factory.com/tools/nagios-plugins/src/check_zone_rrsig_expiration',
+        d: 'check_zone_rrsig_expiration',
+        c: 'sha256:a495d66f9bc4756426789360bb4b6e9602bb12b218a51d1dc58bb716aa770942'
+      }
+    - { u: 'https://raw.githubusercontent.com/tuxthepenguin84/sam-weather/master/samweather',
+        d: samweather,
+        c: 'sha256:4c76132cd45a0222ff318e93e7d04487e87aa3f58b9b144a8a2a0ef1c0fd4e94'
+      }
 ## https://exchange.nagios.org/directory/Plugins/Email-and-Groupware/check_rbl-2Epl/details
-    - { u: "https://exchange.nagios.org/components/com_mtree/attachment.php?link_id=1355&cf_id=24", d: check_rbl.pl, c: 'sha256:e84c01e061ea4c0411d4061b4f9c89809bd4977381f00b456146cdfa146d32e9', v: false }
+    - { u: "https://exchange.nagios.org/components/com_mtree/attachment.php?link_id=1355&cf_id=24",
+        d: check_rbl.pl,
+        c: 'sha256:e84c01e061ea4c0411d4061b4f9c89809bd4977381f00b456146cdfa146d32e9',
+        v: false
+      }
 ## https://github.com/sivel/speedtest-cli
-    - { u: "https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py", d: check_speedtest.py", c: 'sha256:cde7a4f7094afaba360138e7d11c8c1e651c85089c7c41168340fd4b14f6a677.' }
+    - { u: "https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py",
+        d: check_speedtest.py",
+        c: 'sha256:cde7a4f7094afaba360138e7d11c8c1e651c85089c7c41168340fd4b14f6a677.'
+      }
 ## https://exchange.nagios.org/directory/Plugins/Network-Connections,-Stats-and-Bandwidth/check_iperf/details
-    - { u: "https://exchange.nagios.org/components/com_mtree/attachment.php?link_id=1446&cf_id=24", d: check_iperf.pl, c: 'sha256:66034b8e39899d10beba8187973bae6b1cb27172680b9bff1dc0bc5d06f40e6c', v: false }
+    - { u: "https://exchange.nagios.org/components/com_mtree/attachment.php?link_id=1446&cf_id=24",
+        d: check_iperf.pl,
+        c: 'sha256:66034b8e39899d10beba8187973bae6b1cb27172680b9bff1dc0bc5d06f40e6c',
+        v: false
+      }

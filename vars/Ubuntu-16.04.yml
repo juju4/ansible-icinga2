@@ -38,3 +38,6 @@ icinga2_pki_cadir: /var/lib/icinga2/certs
 
 apache_svc: apache2
 mysql_svc: mysql
+
+np: /usr/lib/nagios/plugins
+mysql_svc: mysql
