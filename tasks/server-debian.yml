@@ -98,6 +98,8 @@
 - name: Raspbian | add icinga packages repository key
   apt_key: url=http://packages.icinga.org/icinga.key state=present
   when: ansible_distribution == 'Debian' and (ansible_architecture == 'armhf' or ansible_architecture == 'armv7l')
+  register: pkg_result
+  until: pkg_result is success
 - name: Raspbian | Extra packages install
   apt: name={{ item }} state=present update_cache=yes force=yes
   with_items:

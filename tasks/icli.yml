@@ -2,8 +2,10 @@
 ## icli (for icinga1 made to 2) or use icingacli
 
 #- file: dest=/var/lib/icinga/rw state=directory mode=0755
-- file: dest=/var/lib/icinga2/rw state=directory mode=0755 owner=nagios
-- file: dest=/var/lib/icinga2 state=directory mode=0755 owner=nagios
+- name: Validate permissions of /var/lib/icinga2/rw
+  file: dest=/var/lib/icinga2/rw state=directory mode=0755 owner=nagios
+- name: Validate permissions of /var/lib/icinga2
+  file: dest=/var/lib/icinga2 state=directory mode=0755 owner=nagios
 
 - name: symlink icinga2 to icinga1 - icli
   file: src={{ item.src }} dest={{ item.dst }} state=link force={{ item.force }}

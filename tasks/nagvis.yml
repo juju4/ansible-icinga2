@@ -106,8 +106,9 @@
   register: icingaweb2nagvisdir
 - name: Add nagvis integration to icinga2
   git:
-    repo=https://github.com/divetoh/icingaweb2-module-nagvis.git
-    dest=/usr/share/icingaweb2/modules/nagvis
+    repo: https://github.com/divetoh/icingaweb2-module-nagvis.git
+    dest: /usr/share/icingaweb2/modules/nagvis
+    version: "{{ icinga2_nagvis_version | default('290c79ad4ea86b6b668fb7c15010f77bed792a32') }}"
   when: not icingaweb2nagvisdir.stat.exists
 
 - name: add an automap with localhost as root

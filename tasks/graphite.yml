@@ -39,7 +39,8 @@
 ## if not taking debian package
 #- pip: name=graphite-web
 
-- shell: icinga2 feature list | grep Enabled
+- name: Check currently icinga2 feature enabled
+  shell: icinga2 feature list | grep Enabled
   register: featurelist
   changed_when: False
 - name: Enable icinga2 graphite plugin
@@ -48,7 +49,8 @@
     - restart icinga2
   when: featurelist.stdout.find("graphite") == -1
 
-- lineinfile: dest=/etc/default/graphite-carbon regexp='^CARBON_CACHE_ENABLED=' line='CARBON_CACHE_ENABLED=true'
+- name: Enable Carbon service
+  lineinfile: dest=/etc/default/graphite-carbon regexp='^CARBON_CACHE_ENABLED=' line='CARBON_CACHE_ENABLED=true'
   notify:
     - restart carbon-cache
 
@@ -108,7 +110,8 @@
 #    - { regexp: "", replace: "" }
   when: graphite_backend is defined and graphite_backend == 'postgresql'
 
-- stat: path=/etc/apache2/sites-available/apache2-graphite.conf
+- name: Check if /etc/apache2/sites-available/apache2-graphite.conf exists
+  stat: path=/etc/apache2/sites-available/apache2-graphite.conf
   register: apache2graphite
 - name: Configure graphite in Apache
   copy:
@@ -145,9 +148,11 @@
   notify:
     - restart apache
 
-- file: dest=/etc/icingaweb2/modules/graphite state=directory mode=0755
+- name: Ensure /etc/icingaweb2/modules/graphite directory exists
+  file: dest=/etc/icingaweb2/modules/graphite state=directory mode=0755
 
-- stat: path=/usr/share/icingaweb2/modules/graphite
+- name: Check if /usr/share/icingaweb2/modules/graphite exists
+  stat: path=/usr/share/icingaweb2/modules/graphite
   register: icingaweb2graphitedir
 - name: Add graphite integration to icingaweb2
   git:
@@ -157,27 +162,32 @@
   when: not icingaweb2graphitedir.stat.exists
 
 ## virtualhost is 8888 but accessing through vagrant forward on 1588
-- template: src=config.ini dest=/etc/icingaweb2/modules/graphite/config.ini mode=0644
-- replace:
+- name: Set graphite config for icingaweb2
+  template: src=config.ini dest=/etc/icingaweb2/modules/graphite/config.ini mode=0644
+- name: Update graphite base url
+  replace:
     dest: "{{ item }}"
     regexp: 'http://graphite.com'
     replace: "{{ icinga2_graphite_base_url }}"
   with_items:
     - /usr/share/icingaweb2/modules/graphite/application/views/scripts/config/index.phtml
     - /usr/share/icingaweb2/modules/graphite/library/Graphite/Grapher.php
-- replace:
+- name: Enable legacyMode
+  replace:
     dest: "{{ item }}"
     regexp: "protected $legacyMode = 'false';"
     replace: "protected $legacyMode = 'true';"
   with_items:
     - /usr/share/icingaweb2/modules/graphite/library/Graphite/Grapher.php
 
-- command: graphite-manage syncdb --noinput
+- name: Graphite syncdb
+  command: graphite-manage syncdb --noinput
 ## FIXME! django.db.utils.IntegrityError: UNIQUE constraint failed: auth_user.username
 #- command: graphite-manage createsuperuser --username=adming --noinput --email vagrant@localhost
 ## Note: wsgi is run by apache2 process under _graphite
 #- file: dest=/var/lib/graphite/graphite.db mode=0644 owner=www-data group=_graphite
-- file: dest=/var/lib/graphite/graphite.db mode=0644 owner=_graphite group=_graphite
+- name: Check permissions of graphite sqlite file
+  file: dest=/var/lib/graphite/graphite.db mode=0644 owner=_graphite group=_graphite
   when: graphite_backend is defined and graphite_backend == 'sqlite'
 
 ## https://github.com/graphite-project/graphite-web/issues/789

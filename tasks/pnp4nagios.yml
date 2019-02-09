@@ -95,8 +95,9 @@
 ## https://github.com/Icinga/icingaweb2-module-pnp
 - name: Add pnp4nagios integration to icinga2
   git:
-    repo=https://github.com/Icinga/icingaweb2-module-pnp4nagios
-    dest=/usr/share/icingaweb2/modules/pnp4nagios
+    repo: https://github.com/Icinga/icingaweb2-module-pnp4nagios
+    dest: /usr/share/icingaweb2/modules/pnp4nagios
+    version: "{{ icingaweb2_pnp4nagios_version | default('20700b13383df553440bf140273855204839e1f0') }}"
   when: not icingaweb2pnp4nagiosdir.stat.exists
 
 - name: check_mem.php install

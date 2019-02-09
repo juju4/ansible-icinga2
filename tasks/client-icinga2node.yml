@@ -35,7 +35,7 @@
 #  when: not trustedcrt.stat.exists
 
 - name: icinga2 client node | get a ticket from icinga2 server
-  shell: icinga2 pki ticket --cn {{ certificate_cn }} --salt {{ salt.stdout }}
+  command: icinga2 pki ticket --cn {{ certificate_cn }} --salt {{ salt.stdout }}
   register: ticket
   delegate_to: "{{ icinga2_server }}"
 
