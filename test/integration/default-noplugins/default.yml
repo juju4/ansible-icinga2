@@ -1,0 +1,11 @@
+---
+
+- hosts: all
+  vars:
+    - rabbitmq_conf_ssl_listeners_address: 0.0.0.0
+    - icinga2_api: true
+    - icinga2_icli: true
+    - icinga2_chart_module: pnp4nagios
+    - icinga2_plugins_extra: []
+  roles:
+    - juju4.icinga2

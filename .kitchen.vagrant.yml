@@ -25,3 +25,6 @@ suites:
   - name: default
     run_list:
     attributes:
+  - name: default-noplugins
+    run_list:
+    attributes:
