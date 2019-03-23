@@ -72,22 +72,26 @@
   when: ansible_distribution == 'Ubuntu' and (ansible_architecture == 'i386' or ansible_architecture == 'x86_64')
 
 - name: Debian | Extra packages install
-  apt: name={{ item }} state=present update_cache=yes
-  with_items:
-    - icinga2
-    - icinga2-ido-mysql
-    - git
-    - icingaweb2
+  apt:
+    name:
+      - icinga2
+      - icinga2-ido-mysql
+      - git
+      - icingaweb2
+    state: present
+    update_cache: yes
   when: ansible_distribution == 'Ubuntu' and (ansible_architecture == 'i386' or ansible_architecture == 'x86_64')
   register: pkg_result
   until: pkg_result is success
 
 - name: Debian 386/x86_64 | Extra packages install
-  apt: name={{ item }} state=present update_cache=yes
-  with_items:
-    - icinga2
-    - icinga2-classicui
-    - icingaweb2
+  apt:
+    name:
+      - icinga2
+      - icinga2-classicui
+      - icingaweb2
+    state: present
+    update_cache: yes
   when: ansible_distribution == 'Debian' and (ansible_architecture == 'i386' or ansible_architecture == 'x86_64')
   register: pkg_result
   until: pkg_result is success
@@ -101,15 +105,19 @@
   register: pkg_result
   until: pkg_result is success
 - name: Raspbian | Extra packages install
-  apt: name={{ item }} state=present update_cache=yes force=yes
-  with_items:
-    - icinga2
-    - icinga2-ido-mysql
+  apt:
+    name:
+      - icinga2
+      - icinga2-ido-mysql
+    state: present
+    update_cache: yes
+    force: yes
   when: ansible_distribution == 'Debian' and (ansible_architecture == 'armhf' or ansible_architecture == 'armv7l')
   register: pkg_result
   until: pkg_result is success
 
-- apache2_module: name=rewrite state=present
+- name: Ensure than apache2 rewrite module is present
+  apache2_module: name=rewrite state=present
 
 - stat: path=/etc/apache2/sites-available/000-default.conf
   register: apachedefault
@@ -142,7 +150,10 @@
     - restart apache
 
 - name: Enforce Timezone in php.ini
-  replace: "dest={{ icinga2_phpconf }}/apache2/php.ini regexp='^;date.timezone =' replace='date.timezone = {{ tz }}'"
+  replace:
+    dest: "{{ icinga2_phpconf }}/apache2/php.ini"
+    regexp: '^;date.timezone ='
+    replace: 'date.timezone = {{ tz }}'
 
 - name: Debian | Ensure services are enabled
   service: "name={{ item }} enabled=yes"
