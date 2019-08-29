@@ -89,10 +89,10 @@ icinga2_if: eth0
 
 icinga2_plugins_extra:
 ## http://dns.measurement-factory.com/tools/nagios-plugins/check_zone_rrsig_expiration.html
-    - { u: 'http://dns.measurement-factory.com/tools/nagios-plugins/src/check_zone_rrsig_expiration',
-        d: 'check_zone_rrsig_expiration',
-        c: 'sha256:a495d66f9bc4756426789360bb4b6e9602bb12b218a51d1dc58bb716aa770942'
-      }
+#    - { u: 'http://dns.measurement-factory.com/tools/nagios-plugins/src/check_zone_rrsig_expiration',
+#        d: 'check_zone_rrsig_expiration',
+#        c: 'sha256:a495d66f9bc4756426789360bb4b6e9602bb12b218a51d1dc58bb716aa770942'
+#      }
     - { u: 'https://raw.githubusercontent.com/tuxthepenguin84/sam-weather/master/samweather',
         d: samweather,
         c: 'sha256:4c76132cd45a0222ff318e93e7d04487e87aa3f58b9b144a8a2a0ef1c0fd4e94'
