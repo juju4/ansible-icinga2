@@ -17,4 +17,3 @@
 - include: client-nrpe.yml
 
 - include: client-icinga2node.yml
-#- include: client-agentless.conf
