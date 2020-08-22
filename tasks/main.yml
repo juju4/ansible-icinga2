@@ -1,5 +1,10 @@
 ---
 
+- name: Ensure iproute2 package is present
+  package:
+    name: iproute2
+    state: present
+
 ## to avoid dns issue (used in both client and server mode)
 - name: get icinga2 server ip address
   shell: |
