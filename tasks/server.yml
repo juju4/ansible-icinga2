@@ -214,6 +214,11 @@
   tags:
     - configure
   ignore_errors: true
+- name: Ensure appropriate permissions for ca.crt
+  file:
+    dest: "{{ icinga2_pki_cadir }}/ca.crt"
+    mode: '0644'
+
 - stat: path="{{ icinga2_pki_dir }}/{{ certificate_cn }}.crt"
   register: crtf
 - name: "symlink pki files from {{ inventory_hostname }} to {{ certificate_cn }}"
@@ -237,6 +242,7 @@
   copy:
     src: "/var/lib/icinga2/ca/{{ item }}"
     dest: "{{ icinga2_pki_cadir }}/{{ item }}"
+    mode: '0644'
     remote_src: true
   with_items:
     - ca.crt
