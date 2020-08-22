@@ -40,7 +40,11 @@
 #- pip: name=graphite-web
 
 - name: Check currently icinga2 feature enabled
-  shell: icinga2 feature list | grep Enabled
+  shell: |
+    set -o pipefail
+    icinga2 feature list | grep Enabled
+  args:
+    executable: /bin/bash
   register: featurelist
   changed_when: False
 - name: Enable icinga2 graphite plugin
@@ -76,7 +80,11 @@
 #  when: graphite_backend is defined and graphite_backend == 'postgresql'
 
 - name: generate a salt for graphite
-  shell: "openssl rand -base64 32 | sed 's@[=\\/\\+]@@g;'"
+  shell: |
+    set -o pipefail
+    openssl rand -base64 32 | sed 's@[=\\/\\+]@@g;'
+  args:
+    executable: /bin/bash
   changed_when: False
   register: graphitesalt
 - name: write local settings of graphite

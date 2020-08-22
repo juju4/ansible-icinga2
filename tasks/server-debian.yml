@@ -15,7 +15,7 @@
   debconf:
     name: "{{ item.name }}"
     question: "{{ item.question }}"
-    value: "{{ item.value }}"
+    value: "{{ item.value }}" # noqa 206
     vtype: "{{ item.vtype }}"
   with_items:
     - { name: 'mysql-server-5.5',

@@ -21,7 +21,11 @@
   become: yes
 
 - name: collecting currently enabled icinga2 features
-  shell: icinga2 feature list | grep Enabled
+  shell: |
+    set -o pipefail
+    icinga2 feature list | grep Enabled
+  args:
+    executable: /bin/bash
   register: featurelist
   changed_when: False
   tags:
@@ -99,14 +103,20 @@
 #        --document-root /usr/share/icingaweb2/public
 #        | tee {{ icinga2_apacheconf }}/icingaweb2.conf
 #- command: /usr/share/icingaweb2/bin/icingacli setup config directory
-- stat: path=/root/.icingaweb2_token
+- name: Check if existing icingaweb2 token
+  stat: path=/root/.icingaweb2_token
   register: tokenfile
 #- shell: "/usr/share/icingaweb2/bin/icingacli setup token create | tee /root/.icingaweb2_token"
 - name: create icingaweb2 token
-  shell: "icingacli setup token create | tee /root/.icingaweb2_token"
+  shell: |
+    set -o pipefail
+    icingacli setup token create | tee /root/.icingaweb2_token
+  args:
+    executable: /bin/bash
+    creates: /root/.icingaweb2_token
   register: token
   when: not tokenfile.stat.exists
-- debug: var=token
+- debug: var=token verbosity=1
   when: not tokenfile.stat.exists
 
 - name: ensure right permissions
@@ -133,10 +143,17 @@
 #
 #- command: chown -R root:icingaweb2 /etc/icingaweb2
 
-- user: name="{{ www_user }}" groups=icingaweb2 append=yes
+- name: Ensure www user is icingaweb2 group
+  user:
+    name: "{{ www_user }}"
+    groups: icingaweb2
+    append: yes
 
 - name: ensure right permissions for modsecurity active rules dir
-  file: dest="{{ modsecurity_active }}" state=directory mode=0755
+  file:
+    dest: "{{ modsecurity_active }}"
+    state: directory
+    mode: '0755'
 - name: add icinga2 exceptions to modsecurity
   copy:
     src: modsecurity_crs_90_exceptions_icinga2.conf
@@ -149,7 +166,7 @@
     - restart icinga2
   tags:
     - configure
-- debug: var=icinga2_servicegroups
+- debug: var=icinga2_servicegroups verbosity=1
 - name: add custom groups to icinga2
   template: src=groups.conf.j2 dest=/etc/icinga2/conf.d/groups.conf mode=0644 backup=yes
   notify:
@@ -168,13 +185,21 @@
 #    - configure
 
 - name: generate a salt with openssl
-  shell: "openssl rand -base64 32 | sed 's@[=\\/\\+]@@g;'"
+  shell: |
+    set -o pipefail
+    openssl rand -base64 32 | sed 's@[=\\/\\+]@@g;'
+  args:
+    executable: /bin/bash
   changed_when: False
   register: salt
   tags:
     - configure
 - name: Create salt for pki ticket when registering node
-  replace: dest=/etc/icinga2/constants.conf regexp='{{ item.regexp }}' replace='{{ item.replace }}'
+  replace:
+    dest: /etc/icinga2/constants.conf
+    regexp: "{{ item.regexp }}"
+    replace: "{{ item.replace }}"
+    mode: '0644'
   with_items:
     - { regexp: '^const TicketSalt = ""', replace: 'const TicketSalt = "{{ salt.stdout }}"' }
     - { regexp: '^//const NodeName = "localhost"', replace: 'const NodeName = "{{ ansible_fqdn }}"' }
@@ -300,7 +325,8 @@
         - restart icinga2
   when: icinga2_extra_conf_files is defined and icinga2_extra_conf_files != []
 
-- debug: msg="End configuration by connecting on http://{{ ansible_fqdn}} and entering token {{ token }}"
+- debug:
+    msg: "End configuration by connecting on http://{{ ansible_fqdn }} and entering token {{ token }}"
   when: not tokenfile.stat.exists
 - debug: var=ansible_fqdn
   when: not tokenfile.stat.exists
@@ -309,7 +335,9 @@
 
 ## Note: ensure icinga2 bind ip (icingaserver_ip) is correct else icinga2 start/restart will stalled
 - name: Ensure services are started
-  service: name="{{ item }}" state=started
+  service:
+    name: "{{ item }}"
+    state: started
   with_items:
     - icinga2
     - "{{ apache_svc }}"
@@ -317,7 +345,11 @@
   when: not (ansible_virtualization_type is defined and ansible_virtualization_type == "docker")
 
 - name: Docker | Manually start services
-  shell: "{{ item }}"
+  shell: |
+    set -o pipefail
+    {{ item }}
+  args:
+    executable: /bin/bash
   with_items:
     - sudo -H -u mysql mysqld --initialize > /tmp/mysql_install_db.out 2>&1
     - install -d -o mysql /var/run/mysqld
