@@ -13,6 +13,7 @@ icinga2_server_deps:
     - php-mysql
     - python3-passlib
     - python3-mysqldb
+    - cron
 ## required for snmpget/check_snmp
     - snmp
 # To ensure ansible_default_ipv4 is populated
