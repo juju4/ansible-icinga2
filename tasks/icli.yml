@@ -19,7 +19,8 @@
   notify:
     - restart icinga2
 
-- debug: var=featurelist
+- name: Debug
+  debug: var=featurelist
 - name: Enable command feature in Icinga2 - icli
   command: icinga2 feature enable command
   notify:

@@ -1,6 +1,7 @@
 ---
 
-- set_fact:
+- name: RedHat | set_fact
+  set_fact:
     www_user: apache
     apache_svc: httpd
     apache_confdir: /etc/httpd/conf.d
@@ -37,7 +38,8 @@
 #- name: Redhat | Ensure mysql secure install
 #  command: mysql_secure_installation
 #  when: ansible_os_family == "RedHat"
-- stat: path=/root/.my.cnf
+- name: Check if /root/.my.cnf exists
+  stat: path=/root/.my.cnf
   register: rootmycnf
 - name: Creating default .my.cnf
   lineinfile: dest=/root/.my.cnf line={{ item }} create=yes
@@ -57,13 +59,16 @@
 #    - { o: password, v: root }
   when: rootmycnf.stat.exists
 ## FIXME! fails 'ConfigParser.NoSectionError: No section: 'client'' like https://github.com/ansible/ansible/issues/8915
-- mysql_user:
+- name: Ensure Mysql IDO user exists
+  mysql_user:
     name: "{{ icinga2_mysqlidouser }}"
     password: "{{ icinga2_mysqlidopass }}"
     priv: "{{ icinga2_mysqlidodb }}.*:SELECT,INSERT,UPDATE,DELETE,DROP,CREATE VIEW,INDEX,EXECUTE"
     state: present
-- mysql_db: name=icinga2
-- mysql_db: name=icinga2 state=import target=/usr/share/icinga2-ido-mysql/schema/mysql.sql
+- name: Ensure icinga2 mysql db exists
+  mysql_db: name=icinga2
+- name: Import icinga2-ido-mysql schema
+  mysql_db: name=icinga2 state=import target=/usr/share/icinga2-ido-mysql/schema/mysql.sql
   ignore_errors: true
 
 - name: Enforce Timezone in php.ini

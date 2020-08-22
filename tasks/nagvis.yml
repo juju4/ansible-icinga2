@@ -9,7 +9,8 @@
   register: pkg_result
   until: pkg_result is success
 
-- stat: path=/root/nagvis-{{ icinga2_nagvis_v }}.tar.gz
+- name: Check if nagvis archive is present
+  stat: path=/root/nagvis-{{ icinga2_nagvis_v }}.tar.gz
   register: narchive
 - name: download nagvis
   get_url:
@@ -18,10 +19,12 @@
     mode: '0644'
   when: not narchive.stat.exists
 
-- stat: path=/usr/local/nagvis-{{ icinga2_nagvis_v }}/install.sh
-  register: earchive
-- unarchive: src=/root/nagvis-{{ icinga2_nagvis_v }}.tar.gz dest=/usr/local copy=no
-  when: not earchive.stat.exists
+- name: Uncompress nagvis archive
+  unarchive:
+    src: "/root/nagvis-{{ icinga2_nagvis_v }}.tar.gz"
+    dest: /usr/local
+    creates: "/usr/local/nagvis-{{ icinga2_nagvis_v }}/install.sh"
+    copy: no
 
 - name: symlink /usr/local/nagvis to nagvis-version
   file: src=/usr/local/nagvis-{{ icinga2_nagvis_v }} dest=/usr/local/nagvis state=link
@@ -40,7 +43,8 @@
 - name: symlink nagvis config /etc to /usr/local directory
   file: src=/etc/nagvis/nagvis.ini.php dest=/usr/local/nagvis/etc/nagvis.ini.php state=link
 
-- stat: path=/etc/apache2/conf-available/apache2-nagvis.conf
+- name: Check nagvis apache2 configuration exists
+  stat: path=/etc/apache2/conf-available/apache2-nagvis.conf
   register: nagvisapache
 - name: Configure Nagvis in Apache
   copy:
@@ -65,44 +69,61 @@
   notify:
     - restart apache
 
-- stat: path=/usr/local/nagvis/docs
+- name: Check nagvis docs exists
+  stat: path=/usr/local/nagvis/docs
   register: docsdir
-- file: src=/usr/local/nagvis/docs dest=/usr/local/nagvis/share/docs state=link
+- name: Symlink nagvis docs
+  file: src=/usr/local/nagvis/docs dest=/usr/local/nagvis/share/docs state=link
   when: docsdir.stat.exists
 - name: validating www owner of nagvis tree
-#  command: chown -R {{ www_user }} /usr/local/nagvis
-  file: dest="/usr/local/nagvis-{{ icinga2_nagvis_v }}" state=directory recurse=yes owner={{ www_user }}
+  file:
+    dest: "/usr/local/nagvis-{{ icinga2_nagvis_v }}"
+    state: directory
+    recurse: yes
+    owner: "{{ www_user }}"
 ## https://github.com/ansible/ansible-modules-core/issues/468
 - name: ensure right permissions for nagvis files and dir
   file: path=/etc/nagvis/nagvis.ini.php mode=0664 state=file
-- file: dest=/usr/local/nagvis/etc mode=0775 state=directory owner={{ www_user }}
-- file: dest=/usr/local/nagvis/etc/maps mode=0775
+- name: Validate nagvis/etc permissions
+  file: dest=/usr/local/nagvis/etc mode=0775 state=directory owner={{ www_user }}
+- name: Validate nagvis/etc/maps permissions
+  file: dest=/usr/local/nagvis/etc/maps mode=0775 state=directory owner={{ www_user }}
 ## FIXME! local fileglob NOK anymore ...
-- file: dest={{ item }} mode=0664
+- name: Validate maps/* permissions
+  file: dest={{ item }} mode=0664
   with_fileglob:
     - /usr/local/nagvis/etc/maps/*
-- file: dest=/usr/local/nagvis/etc/geomap mode=0775
-- file: dest={{ item }} mode=0664
+- name: Validate geomap dir permissions
+  file: dest=/usr/local/nagvis/etc/geomap mode=0775
+- name: Validate geomap files permissions
+  file: dest={{ item }} mode=0664
   with_fileglob:
     - /usr/local/nagvis/etc/geomap/*
-- file: dest=/usr/local/nagvis/share/userfiles/images/maps mode=0775
-- file: dest={{ item }} mode=0664
+- name: Validate images/maps dir permissions
+  file: dest=/usr/local/nagvis/share/userfiles/images/maps mode=0775 state=directory owner={{ www_user }}
+- name: Validate images/maps files permissions
+  file: dest={{ item }} mode=0664
   with_fileglob:
     - /usr/local/nagvis/share/userfiles/images/maps/*
-- file: dest=/usr/local/nagvis/var mode=0775 state=directory owner={{ www_user }}
-- file: dest={{ item }} mode=0664 owner={{ www_user }}
+- name: Validate var dir permissions
+  file: dest=/usr/local/nagvis/var mode=0775 state=directory owner={{ www_user }}
+- name: Validate var files permissions
+  file: dest={{ item }} mode=0664 owner={{ www_user }}
   with_fileglob:
     - /usr/local/nagvis/var/*
-- file: dest=/usr/local/nagvis/var/tmpl/cache mode=0775 state=directory owner={{ www_user }}
-- file: dest={{ item }} mode=0664 owner={{ www_user }}
+- name: Validate var/tmpl/cache dir permissions
+  file: dest=/usr/local/nagvis/var/tmpl/cache mode=0775 state=directory owner={{ www_user }}
+- name: Validate var/tmpl/cache files permissions
+  file: dest={{ item }} mode=0664 owner={{ www_user }}
   with_fileglob:
     - /usr/local/nagvis/var/tmpl/cache/*
-- file: dest=/usr/local/nagvis/var/tmpl/compile mode=0775 state=directory owner={{ www_user }}
-- file: dest=/usr/local/nagvis/etc/maps mode=0775 state=directory owner={{ www_user }}
-- file: dest=/usr/local/nagvis/etc/profiles mode=0775 state=directory owner={{ www_user }}
-- file: dest=/usr/local/nagvis/share/userfiles/images/maps mode=0775 state=directory owner={{ www_user }}
+- name: Validate var/tmpl/compile dir permissions
+  file: dest=/usr/local/nagvis/var/tmpl/compile mode=0775 state=directory owner={{ www_user }}
+- name: Validate etc/profiles dir permissions
+  file: dest=/usr/local/nagvis/etc/profiles mode=0775 state=directory owner={{ www_user }}
 
-- stat: path=/usr/share/icingaweb2/modules/nagvis
+- name: Check nagvis dir for icingaweb2 exists
+  stat: path=/usr/share/icingaweb2/modules/nagvis
   register: icingaweb2nagvisdir
 - name: Add nagvis integration to icinga2
   git:

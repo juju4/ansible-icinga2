@@ -1,6 +1,7 @@
 ---
 
-- set_fact:
+- name: Debian | set_fact
+  set_fact:
     www_user: www-data
     apache_svc: apache2
     apache_confdir: /etc/apache2/conf-available
@@ -119,7 +120,8 @@
 - name: Ensure than apache2 rewrite module is present
   apache2_module: name=rewrite state=present
 
-- stat: path=/etc/apache2/sites-available/000-default.conf
+- name: Check if /etc/apache2/sites-available/000-default.conf exists
+  stat: path=/etc/apache2/sites-available/000-default.conf
   register: apachedefault
 - replace:
     dest: /etc/apache2/sites-available/000-default.conf
@@ -145,7 +147,11 @@
   file: dest=/etc/apache2/conf-enabled/javascript-common.conf state=absent
   notify:
     - restart apache
-- lineinfile: dest=/etc/apache2/conf-enabled/servername.conf line="ServerName {{ ansible_fqdn }}" create=yes
+- name: Ensure ServerName is set in apache2
+  lineinfile:
+    dest: /etc/apache2/conf-enabled/servername.conf
+    line: "ServerName {{ ansible_fqdn }}"
+    create: yes
   notify:
     - restart apache
 

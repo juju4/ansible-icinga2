@@ -5,9 +5,12 @@
 ### (old nagios/nrpe client way)
 #
 
-- debug: var=ansible_fqdn
-- debug: var=inventory_hostname
-- debug: var=icinga2_server
+- name: Debug
+  debug: var=ansible_fqdn
+- name: Debug
+  debug: var=inventory_hostname
+- name: Debug
+  debug: var=icinga2_server
 - name: Client nrpe config on Icinga server
   template:
     src: hosts-template.conf

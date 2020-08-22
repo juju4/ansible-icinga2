@@ -89,7 +89,8 @@
 #       --config=/etc/icinga2/icinga2.conf --pnpcfg=/etc/pnp4nagios
 # echo STATS | sudo -u nagios socat - /var/run/rrdcached.sock
 
-- stat: path=/usr/share/icingaweb2/modules/pnp4nagios
+- name: Check if pnp4nagios icingaweb2 exists
+  stat: path=/usr/share/icingaweb2/modules/pnp4nagios
   register: icingaweb2pnp4nagiosdir
 ## https://github.com/Icinga/icingaweb2-module-pnp4nagios deprecated/FIXME!
 ## https://github.com/Icinga/icingaweb2-module-pnp
@@ -105,9 +106,11 @@
            dest="{{ pnp4nagios_templatedir }}/check_mem.php"
            mode=0444
 
-- file: dest=/var/cache/rrdcached mode=0755 owner=nagios state=directory
+- name: Validate /var/cache/rrdcached permissions
+  file: dest=/var/cache/rrdcached mode=0755 owner=nagios state=directory
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
-- lineinfile:
+- name: Configure /etc/default/rrdcached
+  lineinfile:
     dest: /etc/default/rrdcached
     regexp: '^OPTS='
     line: 'OPTS="-w 1800 -z 1800 -j /var/cache/rrdcached -s nagios -m 0660 -l unix:/var/run/rrdcached.sock"'
