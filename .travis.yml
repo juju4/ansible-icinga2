@@ -87,12 +87,18 @@ script:
 #  - 'sudo docker exec --tty "$(cat ${container_id})" /etc/ansible/roles/juju4.icinga2/test/integration/${suite}/serverspec/run-local-tests.sh'
 
 after_failure:
+  - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm ansible -i inventory --connection=local -m setup localhost'
+
+after_script:
+  - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm ls -la /etc/icinga2/'
+  - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm cat /etc/default/icinga2'
+  - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm cat /etc/icinga2/features-enabled/api.conf'
+  - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm ls -la /var/lib/icinga2/certs/'
+  - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm ls -la /var/log/icinga2/'
   # Check what happened on systemd systems.
   - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm systemctl -l --no-pager status icinga2'
   - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm systemctl -l --no-pager status apache2'
   - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm journalctl -xe --no-pager'
-
-after_script:
   # Clean up
   - 'sudo docker stop "$(cat ${container_id})"'
 
