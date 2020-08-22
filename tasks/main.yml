@@ -4,7 +4,7 @@
 - name: get icinga2 server ip address
   shell: |
     set -o pipefail
-    ifconfig {{ icinga2_if }} | awk -F'[ :]' '/inet addr/ {print $13}'
+    ip addr show {{ icinga2_if }} | awk -F'[ /]' '/inet / {print $6}'
   args:
     executable: /bin/bash
   changed_when: False
