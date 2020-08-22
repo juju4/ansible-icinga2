@@ -33,10 +33,10 @@ icinga2_nagvis_debian:
 #    - php-pdo-sqlite
 
 #icinga2_pki_dir: /etc/icinga2/pki
-#icinga2_pki_cadir: /var/lib/icinga2/ca
+icinga2_pki_cadir: /var/lib/icinga2/ca
 # v2.8+, https://github.com/Icinga/icinga2/issues/5779
 icinga2_pki_dir: /var/lib/icinga2/certs
-icinga2_pki_cadir: /var/lib/icinga2/certs
+#icinga2_pki_cadir: /var/lib/icinga2/certs
 
 apache_svc: apache2
 mysql_svc: mysql
