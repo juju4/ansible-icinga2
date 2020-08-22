@@ -362,8 +362,12 @@
 
 - include: plugins.yml
 
-## Web wizard tasks, https://github.com/Icinga/icingaweb2/blob/master/doc/installation.md
+- name: Ensure MySQL Python libraries are installed.
+  apt:
+    name: "{% if 'python3' in ansible_python_interpreter|default('') %}python3-mysqldb{% else %}python-mysqldb{% endif %}"
+    state: present
 
+## Web wizard tasks, https://github.com/Icinga/icingaweb2/blob/master/doc/installation.md
 - name: create icingaweb2 mysql user
   mysql_user:
     name: "{{ icinga2_mysqlwebuser }}"
