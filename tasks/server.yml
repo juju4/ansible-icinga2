@@ -265,12 +265,10 @@
 
 - name: Ensure ca.crt is replicate in pki directory
   copy:
-    src: "/var/lib/icinga2/ca/{{ item }}"
-    dest: "{{ icinga2_pki_cadir }}/{{ item }}"
+    src: "{{ icinga2_pki_cadir }}/ca.crt"
+    dst: "{{ icinga2_pki_dir }}/ca.crt"
     mode: '0644'
     remote_src: true
-  with_items:
-    - ca.crt
   tags:
     - configure
 
