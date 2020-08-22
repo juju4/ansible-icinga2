@@ -266,7 +266,7 @@
 - name: Ensure ca.crt is replicate in pki directory
   copy:
     src: "{{ icinga2_pki_cadir }}/ca.crt"
-    dst: "{{ icinga2_pki_dir }}/ca.crt"
+    dest: "{{ icinga2_pki_dir }}/ca.crt"
     mode: '0644'
     remote_src: true
   tags:
