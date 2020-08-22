@@ -93,10 +93,14 @@ after_failure:
 
 after_script:
   - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm ls -la /etc/icinga2/'
+  - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm cat /etc/icinga2/icinga2.conf'
+  - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm cat /etc/icinga2/constants.conf'
+  - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm cat /etc/icinga2/zones.conf'
   - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm cat /etc/default/icinga2'
   - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm cat /etc/icinga2/features-enabled/api.conf'
+  - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm ls -la /var/lib/icinga2/ca/'
   - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm ls -la /var/lib/icinga2/certs/'
-  - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm ls -la /var/log/icinga2/'
+  - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm ls -laR /var/log/icinga2/'
   # Check what happened on systemd systems.
   - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm systemctl -l --no-pager status icinga2'
   - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm systemctl -l --no-pager status apache2'
